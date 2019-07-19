@@ -17,6 +17,7 @@ set(GPMP2_VERSION_STRING "${GPMP2_VERSION_MAJOR}.${GPMP2_VERSION_MINOR}.${GPMP2_
 # option: whether turn on Matlab toolbox
 option(GPMP2_BUILD_STATIC_LIBRARY "whether build static library" OFF)
 option(GPMP2_BUILD_MATLAB_TOOLBOX "whether build matlab toolbox, need shared lib" OFF)
+option(GPMP2_BUILD_CYTHON_TOOLBOX "whether build matlab toolbox, need shared lib" OFF)
 
 if(GPMP2_BUILD_STATIC_LIBRARY AND GPMP2_BUILD_MATLAB_TOOLBOX)
   message(FATAL_ERROR "matlab toolbox needs shared lib")
@@ -27,6 +28,8 @@ endif()
 find_package(GTSAM REQUIRED) # Uses installed package
 include_directories(${GTSAM_INCLUDE_DIR})
 set(GTSAM_LIBRARIES gtsam)   # TODO: automatic search libs
+
+set(GTSAM_TOOLBOX_INSTALL_PATH "/usr/local/gtsam/toolbox" CACHE PATH "GTSAM toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/gtsam/toolbox")
 
 find_package(GTSAMCMakeTools)
 include(GtsamMakeConfigFile)
@@ -65,9 +68,26 @@ if(GPMP2_BUILD_MATLAB_TOOLBOX)
   # wrap
   include(GtsamMatlabWrap)
   wrap_and_install_library(gpmp2.h ${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}" "")
-  
+
   # install matlab functions and scripts
   add_subdirectory(matlab)
+endif()
+
+# Note that the GTSAM cython function uses the base_name of gpmp2.h to create this directory path
+# This just matches that
+set(GPMP2_CYTHON_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/cython/gpmp2" CACHE PATH "Cython toolbox destination, defaults to CMAKE_INSTALL_PREFIX/cython/gpmp2")
+message("GPMP2_CYTHON_INSTALL_PATH ${GPMP2_CYTHON_INSTALL_PATH}")
+
+if(GPMP2_BUILD_CYTHON_TOOLBOX)
+  # wrap
+  include(GtsamCythonWrap)
+  include_directories(${GTSAM_EIGENCY_INSTALL_PATH})
+  wrap_and_install_library_cython(gpmp2.h "from gtsam.gtsam cimport *" "${GPMP2_CYTHON_INSTALL_PATH}" ${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}")
+
+  # install cython functions and scripts
+  # This function also adds the proper __init__.py files. It's possible that GTSAM will fix this later
+  # and have their function properly create modules with this file. For now, we just do it.
+  add_subdirectory(cython)
 endif()
 
 
