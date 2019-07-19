@@ -147,6 +147,39 @@ void Arm::forwardKinematics(
   }
 }
 
+void Arm::forwardKinematics(
+  const Vector& jp,
+  std::vector<gtsam::Pose3>& jpx) const {
+
+  using namespace std;
+
+  // space for output
+  jpx.resize(dof());
+
+  // variables
+  vector<Matrix4> H(dof());
+  vector<Matrix4> Ho(dof()+1); // start from 1
+
+
+  // first iteration
+  Ho[0] = base_pose_.matrix();          // H matrix for each joint, refer to origin
+
+  // calculate needed vars
+  // indx start from 1
+  for (size_t i = 1; i <= dof(); i++) {
+    // transformation from current frame to previous frame
+    H[i-1] = getH(i-1, jp(i-1));
+    // tranformation from current frame to origin frame
+    Ho[i] = Ho[i-1] * H[i-1];
+  }
+
+  // start calculating Forward and velocity kinematics / Jacobians
+  for (size_t i = 0; i < dof(); i++) {
+    // Find end effector points
+    jpx[i] = Pose3(Rot3(Ho[i+1].block<3,3>(0,0)), Point3(Ho[i+1].col(3).head<3>()));
+  }
+}
+
 const gtsam::Pose3 Arm::link_trans_no_theta(int i) const {
   if (i > link_trans_notheta_.size()) {
     return Pose3(Rot3(), Point3(0, 0, 0));

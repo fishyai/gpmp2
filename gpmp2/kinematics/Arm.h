@@ -72,7 +72,11 @@ public:
       boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jp = boost::none,
       boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jv = boost::none) const;
 
-j /// update base pose in const
+  void forwardKinematics(
+    const gtsam::Vector& jp,
+    std::vector<gtsam::Pose3>& jpx) const;
+
+  /// update base pose in const
   void updateBasePose(const gtsam::Pose3& p) const { base_pose_ = p; }
 
 
