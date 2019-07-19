@@ -44,9 +44,13 @@ public:
 
   /// Contructor take in number of joints for the arm, its DH parameters
   /// the base pose (default zero pose), and theta bias (default zero)
-  Arm(size_t dof, const gtsam::Vector& a, const gtsam::Vector& alpha, const gtsam::Vector& d,
-      const gtsam::Pose3& base_pose = gtsam::Pose3(gtsam::Rot3(), gtsam::Point3(0,0,0)),
-      boost::optional<const gtsam::Vector&> theta_bias = boost::none);
+  Arm(
+    size_t dof, // Number of joints
+    const gtsam::Vector& a,
+    const gtsam::Vector& alpha,
+    const gtsam::Vector& d,
+    const gtsam::Pose3& base_pose = gtsam::Pose3(gtsam::Rot3(), gtsam::Point3(0,0,0)),
+    boost::optional<const gtsam::Vector&> theta_bias = boost::none);
 
   /// Default destructor
   virtual ~Arm() {}
@@ -68,8 +72,7 @@ public:
       boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jp = boost::none,
       boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jv = boost::none) const;
 
-
-  /// update base pose in const
+j /// update base pose in const
   void updateBasePose(const gtsam::Pose3& p) const { base_pose_ = p; }
 
 
@@ -78,6 +81,10 @@ public:
   const gtsam::Vector& d() const { return d_; }
   const gtsam::Vector& alpha() const { return alpha_; }
   const gtsam::Pose3& base_pose() const { return base_pose_; }
+
+  /// Syntax of this one is a bit weird to get it to work with the gtsam MATLAB wrapper
+  /// (although I maybe just don't know how MATLAB works)
+  const gtsam::Pose3 link_trans_no_theta(int i) const;
 
 
 private:

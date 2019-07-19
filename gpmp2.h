@@ -96,6 +96,7 @@ class Arm {
   Vector d() const;
   Vector alpha() const;
   gtsam::Pose3 base_pose() const;
+  gtsam::Pose3 link_trans_no_theta(int i) const;
 };
 
 // abstract pose2 mobile base class

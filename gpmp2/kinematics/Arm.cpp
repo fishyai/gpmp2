@@ -147,4 +147,10 @@ void Arm::forwardKinematics(
   }
 }
 
+const gtsam::Pose3 Arm::link_trans_no_theta(int i) const {
+  if (i > link_trans_notheta_.size()) {
+    return Pose3(Rot3(), Point3(0, 0, 0));
+  }
+  return link_trans_notheta_[i];
 }
+} // namespace gpmp2
