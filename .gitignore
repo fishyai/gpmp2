@@ -3,3 +3,4 @@ build*
 CMakeCache.txt
 CMakeFiles/**
 cmake-build-debug*
+**.pyc
