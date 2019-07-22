@@ -29,7 +29,7 @@ find_package(GTSAM REQUIRED) # Uses installed package
 include_directories(${GTSAM_INCLUDE_DIR})
 set(GTSAM_LIBRARIES gtsam)   # TODO: automatic search libs
 
-set(GTSAM_TOOLBOX_INSTALL_PATH "/usr/local/gtsam/toolbox" CACHE PATH "GTSAM toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/gtsam/toolbox")
+set(GTSAM_TOOLBOX_INSTALL_PATH "/usr/local/gtsam_toolbox" CACHE PATH "GTSAM toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/gtsam/toolbox")
 
 find_package(GTSAMCMakeTools)
 include(GtsamMakeConfigFile)
