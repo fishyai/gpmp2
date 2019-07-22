@@ -76,7 +76,6 @@ endif()
 # Note that the GTSAM cython function uses the base_name of gpmp2.h to create this directory path
 # This just matches that
 set(GPMP2_CYTHON_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/cython/gpmp2" CACHE PATH "Cython toolbox destination, defaults to CMAKE_INSTALL_PREFIX/cython/gpmp2")
-message("GPMP2_CYTHON_INSTALL_PATH ${GPMP2_CYTHON_INSTALL_PATH}")
 
 if(GPMP2_BUILD_CYTHON_TOOLBOX)
   # wrap
