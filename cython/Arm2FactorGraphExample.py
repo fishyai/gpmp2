@@ -4,6 +4,7 @@ import numpy as np
 
 import util
 import math
+import matplotlib.pyplot as plt
 
 
 # Small dataset
@@ -17,13 +18,8 @@ origin_point2 = gtsam.Point2(dataset.origin_x, dataset.origin_y)
 field = dataset.SDF()
 sdf = gpmp2.PlanarSDF(origin_point2, cell_size, field)
 
-# TODO add plotting shit
-# util.plotSignedDistanceField2D(
-#     field,
-#     dataset.origin_x,
-#     dataset.origin_y,
-#     dataset.cell_size,
-# )
+# TODO update this to be more detailed
+dataset.getSDFPlot(field)
 
 # Settings
 total_time_sec = 5.0
@@ -33,7 +29,6 @@ delta_t = total_time_sec / total_time_step
 check_inter = total_check_step / total_time_step - 1
 
 use_gp_inter = True
-
 arm = util.generateArm('SimpleTwoLinksArm')
 
 # GP
@@ -52,8 +47,8 @@ vel_fix = gtsam.noiseModel_Isotropic.Sigma(2, 0.0001)
 start_conf = np.array([0, 0]).T
 start_vel = np.array([0, 0]).T
 
-end_conf = np.array([0, 0]).T
-end_vel = np.array([math.pi, 0]).T
+end_conf = np.array([math.pi / 2, 0]).T
+end_vel = np.array([0, 0]).T
 
 avg_vel = (end_conf / total_time_step) / delta_t
 
@@ -62,6 +57,8 @@ pause_time = total_time_sec / total_time_step
 
 # Plot start / end config
 # TODO plot shit
+dataset.getEvidenceMapPlot()
+util.getPlanarArmPlot(arm.fk_model(), start_conf, 'b', 2)
 
 # Init optimization
 graph = gtsam.NonlinearFactorGraph()
@@ -153,3 +150,4 @@ else:
 optimizer.optimize()
 result = optimizer.values()
 print(result)
+plt.show()

@@ -4,6 +4,7 @@ from scipy import ndimage
 
 import gtsam
 from gpmp2 import gpmp2
+import matplotlib.pyplot as plt
 
 
 class Dataset2D(object):
@@ -92,6 +93,38 @@ class Dataset2D(object):
 
         return sdf
 
+    def getSDFPlot(self, field, epsilon_dist=0):
+        plt.figure()
+        grid_rows = field.shape[0]
+        grid_cols = field.shape[1]
+        grid_corner_x = self.origin_x + (grid_cols - 1) * self.cell_size
+        grid_corner_y = self.origin_y + (grid_rows - 1) * self.cell_size
+        # The matlab code does some weird stuff with the origin. I'm too lazy
+        # to implement that, so I'll just visualize it really quickly for now
+        # TODO fix this to match
+        plt.imshow(field)
+        plt.colorbar()
+
+    def getEvidenceMapPlot(self):
+        # TODO fix this to match matlab code better
+        figure = plt.figure()
+        ax = figure.add_subplot(111)
+        grid_corner_x = self.origin_x + (self.cols - 1) * self.cell_size
+        grid_corner_y = self.origin_y + (self.rows - 1) * self.cell_size
+        plt.imshow((1 - self.map) * 2 + 1)
+        # ax.axis('equal')
+        # ax.set(
+        #     xlim=(
+        #         self.origin_x - self.cell_size / 2,
+        #         grid_corner_x + self.cell_size / 2
+        #     ),
+        #     ylim=(
+        #         self.origin_y - self.cell_size / 2,
+        #         grid_corner_y + self.cell_size / 2
+        #     )
+        # )
+        plt.colorbar()
+
     def _get_center(self, x, y):
         return (
             (y - self.origin_y) / self.cell_size,
@@ -155,3 +188,9 @@ def generateArm(arm_type, base_pose=None):
         raise Exception('No such arm exists')
 
     return gpmp2.ArmModel(arm, sphere_vec)
+
+
+def getPlanarArmPlot(arm, conf, color, width):
+    # TODO clean this up to be more like matlab
+    position = arm.forwardKinematicsPosition(conf)
+    return position
