@@ -81,7 +81,7 @@ if(GPMP2_BUILD_CYTHON_TOOLBOX)
   # wrap
   include(GtsamCythonWrap)
   include_directories(${GTSAM_EIGENCY_INSTALL_PATH})
-  wrap_and_install_library_cython(gpmp2.h "from gtsam.gtsam cimport *" "${GPMP2_CYTHON_INSTALL_PATH}" ${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}")
+  wrap_and_install_library_cython(gpmp2.h "from gtsam.gtsam cimport *" "${GPMP2_CYTHON_INSTALL_PATH}" ${PROJECT_NAME} "")
 
   # install cython functions and scripts
   # This function also adds the proper __init__.py files. It's possible that GTSAM will fix this later
