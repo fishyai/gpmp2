@@ -5,6 +5,7 @@ from scipy import ndimage
 import gtsam
 from gpmp2 import gpmp2
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 
 class Dataset2D(object):
@@ -95,6 +96,7 @@ class Dataset2D(object):
 
     def getSDFPlot(self, field, epsilon_dist=0):
         plt.figure()
+        plt.set_cmap('magma')
         grid_rows = field.shape[0]
         grid_cols = field.shape[1]
         grid_corner_x = self.origin_x + (grid_cols - 1) * self.cell_size
@@ -102,7 +104,16 @@ class Dataset2D(object):
         # The matlab code does some weird stuff with the origin. I'm too lazy
         # to implement that, so I'll just visualize it really quickly for now
         # TODO fix this to match
-        plt.imshow(field)
+        plt.imshow(
+            field,
+            origin='lower',
+            extent=[
+                self.origin_x,
+                grid_corner_x,
+                self.origin_y,
+                grid_corner_y
+            ],
+        )
         plt.colorbar()
 
     def getEvidenceMapPlot(self):
@@ -111,7 +122,16 @@ class Dataset2D(object):
         ax = figure.add_subplot(111)
         grid_corner_x = self.origin_x + (self.cols - 1) * self.cell_size
         grid_corner_y = self.origin_y + (self.rows - 1) * self.cell_size
-        plt.imshow((1 - self.map) * 2 + 1)
+        plt.imshow(
+            (1 - self.map) * 2 + 1,
+            origin='lower',
+            extent=[
+                self.origin_x,
+                grid_corner_x,
+                self.origin_y,
+                grid_corner_y
+            ],
+        )
         # ax.axis('equal')
         # ax.set(
         #     xlim=(
@@ -123,7 +143,8 @@ class Dataset2D(object):
         #         grid_corner_y + self.cell_size / 2
         #     )
         # )
-        plt.colorbar()
+        # plt.colorbar()
+        return figure, ax
 
     def _get_center(self, x, y):
         return (
@@ -190,7 +211,49 @@ def generateArm(arm_type, base_pose=None):
     return gpmp2.ArmModel(arm, sphere_vec)
 
 
-def getPlanarArmPlot(arm, conf, color, width):
+def getPlanarArmPlot(fk_model, conf, color, width):
     # TODO clean this up to be more like matlab
-    position = arm.forwardKinematicsPosition(conf)
+    _position = fk_model.forwardKinematicsPosition(conf)
+    # Get rid of homogeneous coordinates
+    _position = _position[0:2, :]
+
+    # TODO make this plot work with different base poses
+    position = np.zeros((_position.shape[0], _position.shape[1] + 1))
+    position[:, 1:] = _position
+    plt.plot(position[0, :], position[1, :], color=color, linewidth=width)
+    print(position[0, :])
+    print(position[1, :])
+    plt.plot(
+        position[0, :-1],
+        position[1, :-1],
+        color='black',
+        marker='.',
+        markersize=10,
+        linewidth=0)
     return position
+
+
+def getAnimatedPlanarTrajectory(fig, ax, fk_model, confs):
+    print('ummmmmmmmm hello')
+
+    line, = ax.plot([], [], 'ro')
+
+    def init():
+        print('get it dude')
+        line.set_data(confs[0][0, :], confs[0][1, :])
+        return line,
+
+    def animate(frame):
+        x = confs[frame][0, :]
+        y = confs[frame][1, :]
+        line.set_data(x, y)
+        print(line)
+        return line,
+
+    ani = animation.FuncAnimation(
+        fig,
+        animate,
+        frames=range(1, len(confs)),
+        blit=True,
+        init_func=init,
+    )

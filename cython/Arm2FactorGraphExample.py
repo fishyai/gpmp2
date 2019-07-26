@@ -5,6 +5,7 @@ import numpy as np
 import util
 import math
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 
 # Small dataset
@@ -56,9 +57,9 @@ avg_vel = (end_conf / total_time_step) / delta_t
 pause_time = total_time_sec / total_time_step
 
 # Plot start / end config
-# TODO plot shit
 dataset.getEvidenceMapPlot()
-util.getPlanarArmPlot(arm.fk_model(), start_conf, 'b', 2)
+util.getPlanarArmPlot(arm.fk_model(), start_conf, 'blue', 2)
+util.getPlanarArmPlot(arm.fk_model(), end_conf, 'red', 2)
 
 # Init optimization
 graph = gtsam.NonlinearFactorGraph()
@@ -89,16 +90,18 @@ for i in range(total_time_step + 1):
         graph.add(gtsam.PriorFactorVector(key_pos, end_conf, pose_fix))
         graph.add(gtsam.PriorFactorVector(key_pos, end_vel, vel_fix))
 
-    key_pos_prev = gtsam.symbol(ord('x'), i - 1)
-    key_vel_prev = gtsam.symbol(ord('v'), i - 1)
+    key_pos1 = gtsam.symbol(ord('x'), i - 1)
+    key_pos2 = gtsam.symbol(ord('x'), i)
+    key_vel1 = gtsam.symbol(ord('v'), i - 1)
+    key_vel2 = gtsam.symbol(ord('v'), i)
 
     # A prior on the previous positions and velocities
     graph.add(
         gpmp2.GaussianProcessPriorLinear(
-            key_pos_prev,
-            key_vel_prev,
-            key_pos,
-            key_vel,
+            key_pos1,
+            key_vel1,
+            key_pos2,
+            key_vel2,
             delta_t,
             Qc_model,
         )
@@ -121,10 +124,10 @@ for i in range(total_time_step + 1):
             tau = (j + 1) * (total_time_sec / total_check_step)
             graph.add(
                 gpmp2.ObstaclePlanarSDFFactorGPArm(
-                    key_pos_prev,
-                    key_vel_prev,
-                    key_pos,
-                    key_vel,
+                    key_pos1,
+                    key_vel1,
+                    key_pos2,
+                    key_vel2,
                     arm,
                     sdf,
                     cost_sigma,
@@ -136,18 +139,52 @@ for i in range(total_time_step + 1):
             )
 
 # Optimize!
-use_trustregion_opt = False
+# use_trustregion_opt = False
+#
+# if use_trustregion_opt:
+#     parameters = gtsam.DoglegParams()
+#     parameters.setVerbosity('ERROR')
+#     optimizer = gtsam.DoglegOptimizer(graph, init_values, parameters)
+# else:
+#     parameters = gtsam.GaussNewtonParams()
+#     parameters.setVerbosity('ERROR')
+#     optimizer = gtsam.GaussNewtonOptimizer(graph, init_values, parameters)
 
-if use_trustregion_opt:
-    parameters = gtsam.DoglegParams()
-    parameters.setVerbosity('ERROR')
-    optimizer = gtsam.DoglegOptimizer(graph, init_values, parameters)
-else:
-    parameters = gtsam.GaussNewtonParams()
-    parameters.setVerbosity('ERROR')
-    optimizer = gtsam.GaussNewtonOptimizer(graph, init_values, parameters)
+parameters = gtsam.LevenbergMarquardtParams()
+parameters.setVerbosity('ERROR')
+optimizer = gtsam.LevenbergMarquardtOptimizer(graph, init_values, parameters)
 
 optimizer.optimize()
 result = optimizer.values()
-print(result)
+
+
+fig, ax = dataset.getEvidenceMapPlot()
+# plt.title('Optimized Values')
+confs = [
+    result.atVector(gtsam.symbol(ord('x'), i)) for i in range(total_time_step)
+]
+
+fk = arm.fk_model()
+positions = []
+for c in confs:
+    p = fk.forwardKinematicsPosition(c)[0:2, :]
+    position = np.zeros((p.shape[0], p.shape[1] + 1))
+    position[:, 1:] = p
+    positions.append(position)
+
+line, = ax.plot(
+    positions[0][0, :],
+    positions[0][1, :],
+    color='blue',
+    linewidth=2
+)
+
+def animate(i):
+    line.set_xdata(positions[i][0, :])
+    line.set_ydata(positions[i][1, :])
+
+anim = animation.FuncAnimation(fig, animate, interval=100, frames=total_time_step)
+
+plt.draw()
+
 plt.show()
