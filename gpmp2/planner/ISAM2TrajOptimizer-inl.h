@@ -28,26 +28,24 @@ void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_
     initFactorGraph(const Pose& start_conf, const Velocity& start_vel,
     const Pose& goal_conf, const Velocity& goal_vel) {
 
-  using namespace gtsam;
-
   // GP interpolation setting
   const double delta_t = setting_.total_time / static_cast<double>(setting_.total_step);
   const double inter_dt = delta_t / static_cast<double>(setting_.obs_check_inter + 1);
 
   // build graph
   for (size_t i = 0; i <= setting_.total_step; i++) {
-    Key pose_key = Symbol('x', i);
-    Key vel_key = Symbol('v', i);
+    gtsam::Key pose_key = gtsam::Symbol('x', i);
+    gtsam::Key vel_key = gtsam::Symbol('v', i);
 
     // start and end
     if (i == 0) {
-      inc_graph_.add(PriorFactor<Pose>(pose_key, start_conf, setting_.conf_prior_model));
-      inc_graph_.add(PriorFactor<Velocity>(vel_key, start_vel, setting_.vel_prior_model));
+      inc_graph_.add(gtsam::PriorFactor<Pose>(pose_key, start_conf, setting_.conf_prior_model));
+      inc_graph_.add(gtsam::PriorFactor<Velocity>(vel_key, start_vel, setting_.vel_prior_model));
 
     } else if (i == setting_.total_step) {
-      inc_graph_.add(PriorFactor<Pose>(pose_key, goal_conf, setting_.conf_prior_model));
+      inc_graph_.add(gtsam::PriorFactor<Pose>(pose_key, goal_conf, setting_.conf_prior_model));
       goal_conf_factor_idx_ = inc_graph_.size() - 1;        // cache goal factor index here
-      inc_graph_.add(PriorFactor<Velocity>(vel_key, goal_vel, setting_.vel_prior_model));
+      inc_graph_.add(gtsam::PriorFactor<Velocity>(vel_key, goal_vel, setting_.vel_prior_model));
       goal_vel_factor_idx_ = inc_graph_.size() - 1;         // cache goal factor index here
       goal_removed_ = false;
     }
@@ -67,8 +65,8 @@ void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_
     inc_graph_.add(OBS_FACTOR(pose_key, arm_, sdf_, setting_.cost_sigma, setting_.epsilon));
 
     if (i > 0) {
-      Key last_pose_key = Symbol('x', i-1);
-      Key last_vel_key = Symbol('v', i-1);
+      gtsam::Key last_pose_key = gtsam::Symbol('x', i-1);
+      gtsam::Key last_vel_key = gtsam::Symbol('v', i-1);
 
       // interpolated cost factor
       if (setting_.obs_check_inter > 0) {
@@ -120,20 +118,18 @@ template <class ROBOT, class GP, class SDF, class OBS_FACTOR, class OBS_FACTOR_G
 void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_POS, LIMIT_FACTOR_VEL>::
     changeGoalConfigAndVel(const Pose& goal_conf, const Velocity& goal_vel) {
 
-  using namespace gtsam;
-
   // add old eq factor' index in remove list
   removed_factor_index_.push_back(goal_conf_factor_idx_);
   removed_factor_index_.push_back(goal_vel_factor_idx_);
 
   // add new eq factor of goal conf
-  inc_graph_.add(PriorFactor<Pose>(Symbol('x', setting_.total_step), goal_conf,
+  inc_graph_.add(gtsam::PriorFactor<Pose>(gtsam::Symbol('x', setting_.total_step), goal_conf,
       setting_.conf_prior_model));
   // cache this factors's idx
   goal_conf_factor_idx_ = isam_.getFactorsUnsafe().size() + inc_graph_.size() - 1;
 
   // add new eq factor of goal vel
-  inc_graph_.add(PriorFactor<Velocity>(Symbol('v', setting_.total_step), goal_vel,
+  inc_graph_.add(gtsam::PriorFactor<Velocity>(gtsam::Symbol('v', setting_.total_step), goal_vel,
       setting_.vel_prior_model));
   // cache this factors's idx
   goal_vel_factor_idx_ = isam_.getFactorsUnsafe().size() + inc_graph_.size() - 1;
@@ -144,8 +140,6 @@ template <class ROBOT, class GP, class SDF, class OBS_FACTOR, class OBS_FACTOR_G
     class LIMIT_FACTOR_POS, class LIMIT_FACTOR_VEL>
 void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_POS, LIMIT_FACTOR_VEL>::
     removeGoalConfigAndVel() {
-
-  using namespace gtsam;
 
   // add goal factor index in remove list
   if (!goal_removed_) {
@@ -161,37 +155,31 @@ template <class ROBOT, class GP, class SDF, class OBS_FACTOR, class OBS_FACTOR_G
 void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_POS, LIMIT_FACTOR_VEL>::
 	  fixConfigAndVel(size_t state_idx, const Pose& conf_fix, const Velocity& vel_fix) {
 
-  using namespace gtsam;
-
   // fix conf and vel at given pose index
-  inc_graph_.add(PriorFactor<Pose>(Symbol('x', state_idx), conf_fix, setting_.conf_prior_model));
-  inc_graph_.add(PriorFactor<Velocity>(Symbol('v', state_idx), vel_fix, setting_.vel_prior_model));
+  inc_graph_.add(gtsam::PriorFactor<Pose>(gtsam::Symbol('x', state_idx), conf_fix, setting_.conf_prior_model));
+  inc_graph_.add(gtsam::PriorFactor<Velocity>(gtsam::Symbol('v', state_idx), vel_fix, setting_.vel_prior_model));
 }
 
 /* ************************************************************************** */
 template <class ROBOT, class GP, class SDF, class OBS_FACTOR, class OBS_FACTOR_GP,
     class LIMIT_FACTOR_POS, class LIMIT_FACTOR_VEL>
 void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_POS, LIMIT_FACTOR_VEL>::
-    addPoseEstimate(size_t state_idx, const Pose& pose, const Matrix& pose_cov) {
-
-  using namespace gtsam;
+    addPoseEstimate(size_t state_idx, const Pose& pose, const gtsam::Matrix& pose_cov) {
 
   // estimate for pose at given index
-  inc_graph_.add(PriorFactor<Pose>(Symbol('x', state_idx), pose, noiseModel::Gaussian::Covariance(pose_cov)));
+  inc_graph_.add(gtsam::PriorFactor<Pose>(gtsam::Symbol('x', state_idx), pose, gtsam::noiseModel::Gaussian::Covariance(pose_cov)));
 }
 
 /* ************************************************************************** */
 template <class ROBOT, class GP, class SDF, class OBS_FACTOR, class OBS_FACTOR_GP,
     class LIMIT_FACTOR_POS, class LIMIT_FACTOR_VEL>
 void ISAM2TrajOptimizer<ROBOT, GP, SDF, OBS_FACTOR, OBS_FACTOR_GP, LIMIT_FACTOR_POS, LIMIT_FACTOR_VEL>::
-    addStateEstimate(size_t state_idx, const Pose& pose, const Matrix& pose_cov, 
-    const Velocity& vel, const Matrix& vel_cov) {
-
-  using namespace gtsam;
+    addStateEstimate(size_t state_idx, const Pose& pose, const gtsam::Matrix& pose_cov,
+    const Velocity& vel, const gtsam::Matrix& vel_cov) {
 
   // estimate for pose and vel at given index
-  inc_graph_.add(PriorFactor<Pose>(Symbol('x', state_idx), pose, noiseModel::Gaussian::Covariance(pose_cov)));
-  inc_graph_.add(PriorFactor<Velocity>(Symbol('v', state_idx), vel, noiseModel::Gaussian::Covariance(vel_cov)));
+  inc_graph_.add(gtsam::PriorFactor<Pose>(gtsam::Symbol('x', state_idx), pose, gtsam::noiseModel::Gaussian::Covariance(pose_cov)));
+  inc_graph_.add(gtsam::PriorFactor<Velocity>(gtsam::Symbol('v', state_idx), vel, gtsam::noiseModel::Gaussian::Covariance(vel_cov)));
 }
 
 }   // namespace internal

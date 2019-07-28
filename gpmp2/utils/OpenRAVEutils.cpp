@@ -9,8 +9,6 @@
 
 #include <gtsam/inference/Symbol.h>
 
-using namespace gtsam;
-
 
 namespace gpmp2 {
 
@@ -24,10 +22,10 @@ void convertValuesOpenRavePointer(size_t dof, const gtsam::Values& results, doub
     throw std::runtime_error("[convertValuesOpenRavePointer] ERROR: Joint limit size is different from DOF.");
 
   for (size_t i = 0; i <= total_step; i++) {
-    const Key pose_key = Symbol('x', i);
-    const Key vel_key = Symbol('v', i);
-    const Vector& conf = results.at<Vector>(pose_key);
-    const Vector& vel = results.at<Vector>(vel_key);
+    const gtsam::Key pose_key = gtsam::Symbol('x', i);
+    const gtsam::Key vel_key = gtsam::Symbol('v', i);
+    const gtsam::Vector& conf = results.at<gtsam::Vector>(pose_key);
+    const gtsam::Vector& vel = results.at<gtsam::Vector>(vel_key);
 
     // copy memory
     for (size_t j = 0; j < dof; j++) {
@@ -50,11 +48,11 @@ void convertOpenRavePointerValues(size_t dof, gtsam::Values& results, double *po
   for (size_t i = 0; i <= total_step; i++) {
 
     // key
-    const Key pose_key = Symbol('x', i);
-    const Key vel_key = Symbol('v', i);
+    const gtsam::Key pose_key = gtsam::Symbol('x', i);
+    const gtsam::Key vel_key = gtsam::Symbol('v', i);
 
     // get conf and vel values
-    Vector conf(dof), vel(dof);
+    gtsam::Vector conf(dof), vel(dof);
     for (size_t j = 0; j < dof; j++) {
       conf(j) = pointer[dof*i + j];
       vel(j) = pointer[dof*(i+total_step+1) + j];

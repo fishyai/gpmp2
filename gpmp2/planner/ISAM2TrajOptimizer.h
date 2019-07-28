@@ -122,12 +122,12 @@ public:
 
   /// add pose estimate after execution (mean and covariance) at current isam2 values
   /// also need current time stamp (state index)
-  void addPoseEstimate(size_t state_idx, const Pose& pose, const Matrix& pose_cov);
+  void addPoseEstimate(size_t state_idx, const Pose& pose, const gtsam::Matrix& pose_cov);
 
   /// add state estimate after execution (mean and covariance) at current isam2 values
   /// also need current time stamp (state index)
-  void addStateEstimate(size_t state_idx, const Pose& pose, const Matrix& pose_cov, 
-    const Velocity& vel, const Matrix& vel_cov);
+  void addStateEstimate(size_t state_idx, const Pose& pose, const gtsam::Matrix& pose_cov,
+    const Velocity& vel, const gtsam::Matrix& vel_cov);
 
   /// accesses
   const gtsam::Values& values() const { return opt_values_; }

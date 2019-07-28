@@ -8,7 +8,6 @@
 #include <gpmp2/obstacle/ObstacleCost.h>
 
 using namespace std;
-using namespace gtsam;
 
 
 namespace gpmp2 {
@@ -20,11 +19,11 @@ gtsam::Vector ObstacleSDFFactor<ROBOT>::evaluateError(
 
   // if Jacobians used, initialize as zeros
   // size: arm_nr_points_ * DOF
-  if (H1) *H1 = Matrix::Zero(robot_.nr_body_spheres(), robot_.dof());
+  if (H1) *H1 = gtsam::Matrix::Zero(robot_.nr_body_spheres(), robot_.dof());
 
   // run forward kinematics of this configuration
-  vector<Point3> sph_centers;
-  vector<Matrix> J_px_jp;
+  vector<gtsam::Point3> sph_centers;
+  vector<gtsam::Matrix> J_px_jp;
   if (H1)
     robot_.sphereCenters(conf, sph_centers, J_px_jp);
   else
@@ -32,7 +31,7 @@ gtsam::Vector ObstacleSDFFactor<ROBOT>::evaluateError(
 
 
   // allocate cost vector
-  Vector err(robot_.nr_body_spheres());
+  gtsam::Vector err(robot_.nr_body_spheres());
 
   // for each point on arm stick, get error
   for (size_t sph_idx = 0; sph_idx < robot_.nr_body_spheres(); sph_idx++) {
@@ -40,7 +39,7 @@ gtsam::Vector ObstacleSDFFactor<ROBOT>::evaluateError(
     const double total_eps = robot_.sphere_radius(sph_idx) + epsilon_;
 
     if (H1) {
-      Matrix13 Jerr_point;
+      gtsam::Matrix13 Jerr_point;
       err(sph_idx) = hingeLossObstacleCost(sph_centers[sph_idx], sdf_, total_eps, Jerr_point);
 
       // chain rules

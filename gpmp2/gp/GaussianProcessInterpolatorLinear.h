@@ -67,11 +67,9 @@ public:
       gtsam::OptionalJacobian<Eigen::Dynamic, Eigen::Dynamic> H3 = boost::none,
       gtsam::OptionalJacobian<Eigen::Dynamic, Eigen::Dynamic> H4 = boost::none) const {
 
-    using namespace gtsam;
-
     // state vector
-    Vector x1 = (Vector(2*dof_) << pose1, vel1).finished();
-    Vector x2 = (Vector(2*dof_) << pose2, vel2).finished();
+    gtsam::Vector x1 = (gtsam::Vector(2*dof_) << pose1, vel1).finished();
+    gtsam::Vector x2 = (gtsam::Vector(2*dof_) << pose2, vel2).finished();
 
     // jacobians
     if (H1) *H1 = Lambda_.block(0, 0, dof_, dof_);
@@ -105,11 +103,9 @@ public:
       gtsam::OptionalJacobian<Eigen::Dynamic, Eigen::Dynamic> H3 = boost::none,
       gtsam::OptionalJacobian<Eigen::Dynamic, Eigen::Dynamic> H4 = boost::none) const {
 
-    using namespace gtsam;
-
     // state vector
-    Vector x1 = (Vector(2*dof_) << pose1, vel1).finished();
-    Vector x2 = (Vector(2*dof_) << pose2, vel2).finished();
+    gtsam::Vector x1 = (gtsam::Vector(2*dof_) << pose1, vel1).finished();
+    gtsam::Vector x2 = (gtsam::Vector(2*dof_) << pose2, vel2).finished();
 
     // jacobians
     if (H1) *H1 = Lambda_.block(dof_, 0, dof_, dof_);

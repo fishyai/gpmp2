@@ -9,8 +9,6 @@
 #include <gtsam/geometry/Pose2.h>
 
 using namespace std;
-using namespace gtsam;
-
 
 namespace gpmp2 {
  
@@ -53,19 +51,19 @@ gtsam::Pose3 liftBasePose3(const gtsam::Pose2& base_pose2,
   gtsam::OptionalJacobian<6,4> J = boost::none) {
   
   // a const pose to lift base
-  Pose3 lift_base_pose;
+  gtsam::Pose3 lift_base_pose;
   //Matrix63 Jliftbase_z;
   if (reverse_linact) {
-    lift_base_pose = Pose3::Create(Rot3(), Point3(0, 0, -lift));
+    lift_base_pose = gtsam::Pose3::Create(gtsam::Rot3(), gtsam::Point3(0, 0, -lift));
   } else {
-    lift_base_pose = Pose3::Create(Rot3(), Point3(0, 0, lift));
+    lift_base_pose = gtsam::Pose3::Create(gtsam::Rot3(), gtsam::Point3(0, 0, lift));
   }
 
   if (J) {
-    Matrix63 Harmbase;
-    const Pose3 armbase = computeBaseTransPose3(base_pose2, base_T_trans, Harmbase);
-    Matrix6 Hcomp1, Hcomp2;
-    const Pose3 armbaselift = lift_base_pose.compose(armbase, Hcomp1, Hcomp2);
+    gtsam::Matrix63 Harmbase;
+    const gtsam::Pose3 armbase = computeBaseTransPose3(base_pose2, base_T_trans, Harmbase);
+    gtsam::Matrix6 Hcomp1, Hcomp2;
+    const gtsam::Pose3 armbaselift = lift_base_pose.compose(armbase, Hcomp1, Hcomp2);
     // J over pose2
     J->block<6,3>(0,0) = Hcomp2 * Harmbase;
     // J over lift z

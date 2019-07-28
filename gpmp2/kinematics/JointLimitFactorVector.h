@@ -62,10 +62,9 @@ public:
   gtsam::Vector evaluateError(const gtsam::Vector& conf, 
       boost::optional<gtsam::Matrix&> H1 = boost::none) const {
 
-    using namespace gtsam;
     if (H1)
-      *H1 = Matrix::Zero(conf.size(), conf.size());
-    Vector err(conf.size());
+      *H1 = gtsam::Matrix::Zero(conf.size(), conf.size());
+    gtsam::Vector err(conf.size());
     for (size_t i = 0; i < (size_t)conf.size(); i++) {
       if (H1) {
         double Hp;

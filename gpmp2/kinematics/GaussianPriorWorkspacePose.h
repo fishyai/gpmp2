@@ -53,15 +53,13 @@ public:
   gtsam::Vector evaluateError(
       const Pose& pose, boost::optional<gtsam::Matrix&> H1 = boost::none) const {
 
-    using namespace gtsam;
-
-    std::vector<Pose3> joint_pos;
-    std::vector<Matrix> J_jpx_jp;
+    std::vector<gtsam::Pose3> joint_pos;
+    std::vector<gtsam::Matrix> J_jpx_jp;
     robot_.fk_model().forwardKinematics(pose, boost::none, joint_pos, boost::none, J_jpx_jp);
 
     if (H1) {
-      Matrix66 H_ep;
-      Vector error = des_pose_.logmap(joint_pos[joint_], boost::none, H_ep);
+      gtsam::Matrix66 H_ep;
+      gtsam::Vector error = des_pose_.logmap(joint_pos[joint_], boost::none, H_ep);
       *H1 = H_ep * J_jpx_jp[joint_];
       return error;
     }

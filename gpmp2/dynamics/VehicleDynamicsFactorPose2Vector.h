@@ -56,24 +56,22 @@ public:
       boost::optional<gtsam::Matrix&> H1 = boost::none,
       boost::optional<gtsam::Matrix&> H2 = boost::none) const {
 
-    using namespace gtsam;
-
     if (H1 || H2) {
-      Matrix13 Hp, Hv;
+      gtsam::Matrix13 Hp, Hv;
       const double err = simple2DVehicleDynamicsPose2(conf.pose(),
           vel.head<3>(), Hp, Hv);
       if (H1) {
-        *H1 = Matrix::Zero(1, conf.dim());
+        *H1 = gtsam::Matrix::Zero(1, conf.dim());
         H1->block<1,3>(0,0) = Hp;
       }
       if (H2) {
-        *H2 = Matrix::Zero(1, conf.dim());
+        *H2 = gtsam::Matrix::Zero(1, conf.dim());
         H2->block<1,3>(0,0) = Hv;
       }
-      return (Vector(1) << err).finished();
+      return (gtsam::Vector(1) << err).finished();
 
     } else {
-      return (Vector(1) << simple2DVehicleDynamicsPose2(conf.pose(),
+      return (gtsam::Vector(1) << simple2DVehicleDynamicsPose2(conf.pose(),
           vel.head<3>())).finished();
     }
   }

@@ -58,16 +58,14 @@ public:
   gtsam::Vector evaluateError(
       const gtsam::Vector& conf, boost::optional<gtsam::Matrix&> H1 = boost::none) const {
 
-    using namespace gtsam;
-
     // fk
-    std::vector<Pose3> joint_pos;
-    std::vector<Matrix> J_jpx_jp;
+    std::vector<gtsam::Pose3> joint_pos;
+    std::vector<gtsam::Matrix> J_jpx_jp;
     arm_.forwardKinematics(conf, boost::none, joint_pos, boost::none, J_jpx_jp);
 
     if (H1) {
-      Matrix36 Hpp;
-      Point3 end_point = joint_pos[arm_.dof() - 1].translation(Hpp);
+      gtsam::Matrix36 Hpp;
+      gtsam::Point3 end_point = joint_pos[arm_.dof() - 1].translation(Hpp);
       *H1 = Hpp * J_jpx_jp[arm_.dof() - 1];
       return end_point.vector() - dest_point_.vector();
 

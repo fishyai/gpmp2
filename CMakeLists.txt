@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 2.6)
 enable_testing()
 project(gpmp2 CXX C)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# TODO I probably need to fix this in order for the library to work with ROS
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Mac ONLY. Define Relative Path on Mac OS
 if(NOT DEFINED CMAKE_MACOSX_RPATH)

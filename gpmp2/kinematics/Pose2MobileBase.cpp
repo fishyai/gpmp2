@@ -10,7 +10,6 @@
 
 #include <iostream>
 
-using namespace gtsam;
 using namespace std;
 
 
@@ -34,12 +33,12 @@ void Pose2MobileBase::forwardKinematics(
   // allocate space
   px.resize(nr_links());
   if (vx) vx->resize(nr_links());
-  if (J_px_p) J_px_p->assign(nr_links(), Matrix::Zero(6, dof()));
-  if (J_vx_p) J_vx_p->assign(nr_links(), Matrix::Zero(3, dof()));
-  if (J_vx_v) J_vx_v->assign(nr_links(), Matrix::Zero(3, dof()));
+  if (J_px_p) J_px_p->assign(nr_links(), gtsam::Matrix::Zero(6, dof()));
+  if (J_vx_p) J_vx_p->assign(nr_links(), gtsam::Matrix::Zero(3, dof()));
+  if (J_vx_v) J_vx_v->assign(nr_links(), gtsam::Matrix::Zero(3, dof()));
 
   // assign values
-  Matrix63 Hveh_base;
+  gtsam::Matrix63 Hveh_base;
   if (J_px_p || J_vx_p || J_vx_v) {
     px[0] = computeBasePose3(p, Hveh_base);
   } else {
@@ -47,10 +46,10 @@ void Pose2MobileBase::forwardKinematics(
   }
   if (J_px_p) (*J_px_p)[0].block<6,3>(0,0) = Hveh_base;
   if (vx) {
-    (*vx)[0] = Vector3((*v)[0], (*v)[1], 0.0);
+    (*vx)[0] = gtsam::Vector3((*v)[0], (*v)[1], 0.0);
     // (*J_vx_p)[0] is zero
     if (J_vx_v)
-      (*J_vx_v)[0].block<2,2>(0,0) = Matrix2::Identity();
+      (*J_vx_v)[0].block<2,2>(0,0) = gtsam::Matrix2::Identity();
   }
 }
 

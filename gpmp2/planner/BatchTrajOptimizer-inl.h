@@ -24,27 +24,25 @@ gtsam::Values BatchTrajOptimize(
     const typename ROBOT::Pose& end_conf, const typename ROBOT::Velocity& end_vel,
     const gtsam::Values& init_values, const TrajOptimizerSetting& setting) {
 
-  using namespace gtsam;
-
   // GP interpolation setting
   const double delta_t = setting.total_time / static_cast<double>(setting.total_step);
   const double inter_dt = delta_t / static_cast<double>(setting.obs_check_inter + 1);
 
   // build graph
-  NonlinearFactorGraph graph;
+  gtsam::NonlinearFactorGraph graph;
 
   for (size_t i = 0; i <= setting.total_step; i++) {
-    Key pose_key = Symbol('x', i);
-    Key vel_key = Symbol('v', i);
+    gtsam::Key pose_key = gtsam::Symbol('x', i);
+    gtsam::Key vel_key = gtsam::Symbol('v', i);
 
     // start and end
     if (i == 0) {
-      graph.add(PriorFactor<typename ROBOT::Pose>(pose_key, start_conf, setting.conf_prior_model));
-      graph.add(PriorFactor<typename ROBOT::Velocity>(vel_key, start_vel, setting.vel_prior_model));
+      graph.add(gtsam::PriorFactor<typename ROBOT::Pose>(pose_key, start_conf, setting.conf_prior_model));
+      graph.add(gtsam::PriorFactor<typename ROBOT::Velocity>(vel_key, start_vel, setting.vel_prior_model));
 
     } else if (i == setting.total_step) {
-      graph.add(PriorFactor<typename ROBOT::Pose>(pose_key, end_conf, setting.conf_prior_model));
-      graph.add(PriorFactor<typename ROBOT::Velocity>(vel_key, end_vel, setting.vel_prior_model));
+      graph.add(gtsam::PriorFactor<typename ROBOT::Pose>(pose_key, end_conf, setting.conf_prior_model));
+      graph.add(gtsam::PriorFactor<typename ROBOT::Velocity>(vel_key, end_vel, setting.vel_prior_model));
     }
 
     if (setting.flag_pos_limit) {
@@ -62,8 +60,8 @@ gtsam::Values BatchTrajOptimize(
     graph.add(OBS_FACTOR(pose_key, arm, sdf, setting.cost_sigma, setting.epsilon));
 
     if (i > 0) {
-      Key last_pose_key = Symbol('x', i-1);
-      Key last_vel_key = Symbol('v', i-1);
+      gtsam::Key last_pose_key = gtsam::Symbol('x', i-1);
+      gtsam::Key last_vel_key = gtsam::Symbol('v', i-1);
 
       // interpolated cost factor
       if (setting.obs_check_inter > 0) {
@@ -89,12 +87,10 @@ double CollisionCost(
     const ROBOT& robot, const SDF& sdf, const gtsam::Values& result, 
     const TrajOptimizerSetting& setting) {
 
-  using namespace gtsam;
-
   double coll_cost = 0;
-  OBS_FACTOR obs_factor = OBS_FACTOR(Symbol('x', 0), robot, sdf, setting.cost_sigma, 0);
+  OBS_FACTOR obs_factor = OBS_FACTOR(gtsam::Symbol('x', 0), robot, sdf, setting.cost_sigma, 0);
   for (size_t i=0; i<result.size()/2; i++)
-    coll_cost += (obs_factor.evaluateError(result.at<typename ROBOT::Pose>(Symbol('x', i)))).sum();
+    coll_cost += (obs_factor.evaluateError(result.at<typename ROBOT::Pose>(gtsam::Symbol('x', i)))).sum();
   
   return coll_cost;
 }

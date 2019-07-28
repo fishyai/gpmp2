@@ -19,58 +19,57 @@
 #include <iostream>
 
 using namespace std;
-using namespace gtsam;
 using namespace gpmp2;
 
 
 /* ************************************************************************** */
 TEST(GaussianPriorWorkspacePositionArm, error) {
 
-  Vector2 a(1, 1), alpha(0, 0), d(0, 0);
+  gtsam::Vector2 a(1, 1), alpha(0, 0), d(0, 0);
   ArmModel arm = ArmModel(Arm(2, a, alpha, d), BodySphereVector());
-  Vector2 q;
-  Point3 des_position;
-  Vector actual, expect;
-  Matrix H_exp, H_act;
-  noiseModel::Gaussian::shared_ptr cost_model = noiseModel::Isotropic::Sigma(3, 1.0);
+  gtsam::Vector2 q;
+  gtsam::Point3 des_position;
+  gtsam::Vector actual, expect;
+  gtsam::Matrix H_exp, H_act;
+  gtsam::noiseModel::Gaussian::shared_ptr cost_model = gtsam::noiseModel::Isotropic::Sigma(3, 1.0);
 
   // zero
   {
-    q = Vector2(0, 0);
-    des_position = Point3(2, 0, 0);
+    q = gtsam::Vector2(0, 0);
+    des_position = gtsam::Point3(2, 0, 0);
     GaussianPriorWorkspacePositionArm factor(0, arm, 1, des_position, cost_model);
     actual = factor.evaluateError(q, H_act);
-    expect = Vector3(0, 0, 0);
-    H_exp = numericalDerivative11(boost::function<Vector3(const Vector2&)>(
+    expect = gtsam::Vector3(0, 0, 0);
+    H_exp = gtsam::numericalDerivative11(boost::function<gtsam::Vector3(const gtsam::Vector2&)>(
         boost::bind(&GaussianPriorWorkspacePositionArm::evaluateError, factor, _1, boost::none)), q, 1e-6);
-    EXPECT(assert_equal(expect, actual, 1e-6));
-    EXPECT(assert_equal(H_exp, H_act, 1e-6));
+    EXPECT(gtsam::assert_equal(expect, actual, 1e-6));
+    EXPECT(gtsam::assert_equal(H_exp, H_act, 1e-6));
   }
 
   // 45 deg
   {
-    q = Vector2(M_PI/4.0, 0);
-    des_position = Point3(1.414213562373095, 1.414213562373095, 0);
+    q = gtsam::Vector2(M_PI/4.0, 0);
+    des_position = gtsam::Point3(1.414213562373095, 1.414213562373095, 0);
     GaussianPriorWorkspacePositionArm factor(0, arm, 1, des_position, cost_model);
     actual = factor.evaluateError(q, H_act);
-    expect = Vector3(0, 0, 0);
-    H_exp = numericalDerivative11(boost::function<Vector3(const Vector2&)>(
+    expect = gtsam::Vector3(0, 0, 0);
+    H_exp = gtsam::numericalDerivative11(boost::function<gtsam::Vector3(const gtsam::Vector2&)>(
         boost::bind(&GaussianPriorWorkspacePositionArm::evaluateError, factor, _1, boost::none)), q, 1e-6);
-    EXPECT(assert_equal(expect, actual, 1e-6));
-    EXPECT(assert_equal(H_exp, H_act, 1e-6));
+    EXPECT(gtsam::assert_equal(expect, actual, 1e-6));
+    EXPECT(gtsam::assert_equal(H_exp, H_act, 1e-6));
   }
 
   // non zero error
   {
-    q = Vector2(M_PI/4.0, 0);
-    des_position = Point3(2, 0, 0);
+    q = gtsam::Vector2(M_PI/4.0, 0);
+    des_position = gtsam::Point3(2, 0, 0);
     GaussianPriorWorkspacePositionArm factor(0, arm, 1, des_position, cost_model);
     actual = factor.evaluateError(q, H_act);
-    expect = Vector3(-0.585786437626905, 1.414213562373095, 0);
-    H_exp = numericalDerivative11(boost::function<Vector3(const Vector2&)>(
+    expect = gtsam::Vector3(-0.585786437626905, 1.414213562373095, 0);
+    H_exp = gtsam::numericalDerivative11(boost::function<gtsam::Vector3(const gtsam::Vector2&)>(
         boost::bind(&GaussianPriorWorkspacePositionArm::evaluateError, factor, _1, boost::none)), q, 1e-6);
-    EXPECT(assert_equal(expect, actual, 1e-6));
-    EXPECT(assert_equal(H_exp, H_act, 1e-6));
+    EXPECT(gtsam::assert_equal(expect, actual, 1e-6));
+    EXPECT(gtsam::assert_equal(H_exp, H_act, 1e-6));
   }
 }
 
@@ -79,32 +78,32 @@ TEST(GaussianPriorWorkspacePositionArm, error) {
 TEST(GaussianPriorWorkspacePositionArm, optimization) {
 
   // use optimization to solve inverse kinematics
-  noiseModel::Gaussian::shared_ptr cost_model = noiseModel::Isotropic::Sigma(3, 0.1);
+  gtsam::noiseModel::Gaussian::shared_ptr cost_model = gtsam::noiseModel::Isotropic::Sigma(3, 0.1);
 
-  Vector a = (Vector(2) << 1, 1).finished();
-  Vector alpha = (Vector(2) << 0, 0).finished();
-  Vector d = (Vector(2) << 0, 0).finished();
+  gtsam::Vector a = (gtsam::Vector(2) << 1, 1).finished();
+  gtsam::Vector alpha = (gtsam::Vector(2) << 0, 0).finished();
+  gtsam::Vector d = (gtsam::Vector(2) << 0, 0).finished();
   ArmModel arm = ArmModel(Arm(2, a, alpha, d), BodySphereVector());
-  Point3 des_position(1.414213562373095, 1.414213562373095, 0);
+  gtsam::Point3 des_position(1.414213562373095, 1.414213562373095, 0);
 
-  Key qkey = Symbol('x', 0);
-  Vector q = (Vector(2) << M_PI/4.0, 0).finished();
-  Vector qinit = (Vector(2) << 0, 0).finished();
+  gtsam::Key qkey = gtsam::Symbol('x', 0);
+  gtsam::Vector q = (gtsam::Vector(2) << M_PI/4.0, 0).finished();
+  gtsam::Vector qinit = (gtsam::Vector(2) << 0, 0).finished();
 
-  NonlinearFactorGraph graph;
+  gtsam::NonlinearFactorGraph graph;
   graph.add(GaussianPriorWorkspacePositionArm(qkey, arm, 1, des_position, cost_model));
-  Values init_values;
+  gtsam::Values init_values;
   init_values.insert(qkey, qinit);
 
-  LevenbergMarquardtParams parameters;
+  gtsam::LevenbergMarquardtParams parameters;
   parameters.setVerbosity("ERROR");
   parameters.setAbsoluteErrorTol(1e-12);
-  LevenbergMarquardtOptimizer optimizer(graph, init_values, parameters);
+  gtsam::LevenbergMarquardtOptimizer optimizer(graph, init_values, parameters);
   optimizer.optimize();
-  Values results = optimizer.values();
+  gtsam::Values results = optimizer.values();
 
   EXPECT_DOUBLES_EQUAL(0, graph.error(results), 1e-3);
-  EXPECT(assert_equal(q, results.at<Vector>(qkey), 1e-3));
+  EXPECT(gtsam::assert_equal(q, results.at<gtsam::Vector>(qkey), 1e-3));
 }
 
 /* ************************************************************************** */

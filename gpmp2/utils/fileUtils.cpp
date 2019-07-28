@@ -7,7 +7,6 @@
 
 #include <gpmp2/obstacle/SignedDistanceField.h>
 
-using namespace gtsam;
 using namespace std;
 
 
@@ -39,9 +38,9 @@ bool readSDFvolfile(const std::string& filename_pre, SignedDistanceField& sdf) {
   if (!data_file.is_open())
     return false;
 
-  vector<Matrix> vmat;
+  vector<gtsam::Matrix> vmat;
   for (size_t z = 0; z < field_z; z++) {
-    vmat.push_back(Matrix(field_rows, field_cols));
+    vmat.push_back(gtsam::Matrix(field_rows, field_cols));
   }
 
   double tmpsdf;
@@ -56,7 +55,7 @@ bool readSDFvolfile(const std::string& filename_pre, SignedDistanceField& sdf) {
 
   data_file.close();
 
-  sdf = SignedDistanceField(Point3(origin_x, origin_y, origin_z), vol_res, vmat);
+  sdf = SignedDistanceField(gtsam::Point3(origin_x, origin_y, origin_z), vol_res, vmat);
 
   return true;
 }

@@ -10,7 +10,6 @@
 
 #include <iostream>
 
-using namespace gtsam;
 using namespace std;
 
 
@@ -23,7 +22,7 @@ Pose2MobileVetLinArm::Pose2MobileVetLinArm(const Arm& arm, const gtsam::Pose3& b
     reverse_linact_(reverse_linact), arm_(arm) {
 
   // check arm base pose, warn if non-zero
-  if (!arm_.base_pose().equals(Pose3::identity(), 1e-6))
+  if (!arm_.base_pose().equals(gtsam::Pose3::identity(), 1e-6))
   cout << "[Pose2MobileArm] WARNING: Arm has non-zero base pose, this base pose will be override. "
       "Set the base_T_torso and torso_T_arm in Pose2MobileArm." << endl;
 }
@@ -46,19 +45,19 @@ void Pose2MobileVetLinArm::forwardKinematics(const Pose2Vector& p,
   // space for output
   px.resize(nr_links());
   if (vx) vx->resize(nr_links());
-  if (J_px_p) J_px_p->assign(nr_links(), Matrix::Zero(6, dof()));
-  if (J_vx_p) J_vx_p->assign(nr_links(), Matrix::Zero(3, dof()));
-  if (J_vx_v) J_vx_v->assign(nr_links(), Matrix::Zero(3, dof()));
+  if (J_px_p) J_px_p->assign(nr_links(), gtsam::Matrix::Zero(6, dof()));
+  if (J_vx_p) J_vx_p->assign(nr_links(), gtsam::Matrix::Zero(3, dof()));
+  if (J_vx_v) J_vx_v->assign(nr_links(), gtsam::Matrix::Zero(3, dof()));
 
   // vehicle & arm base pose
-  Pose3 veh_base, tso_base, arm_base;
-  Matrix63 Hveh_base;
-  Matrix64 Htso_base, Harm_base;
+  gtsam::Pose3 veh_base, tso_base, arm_base;
+  gtsam::Matrix63 Hveh_base;
+  gtsam::Matrix64 Htso_base, Harm_base;
   if (J_px_p || J_vx_p || J_vx_v) {
     veh_base = computeBasePose3(p.pose(), Hveh_base);
     tso_base = liftBasePose3(p.pose(), p.configuration()(0), base_T_torso_, reverse_linact_, 
         Htso_base);
-    Matrix6 H_tso_comp;
+    gtsam::Matrix6 H_tso_comp;
     arm_base = tso_base.compose(torso_T_arm_, H_tso_comp);
     Harm_base = H_tso_comp * Htso_base;
 
@@ -77,12 +76,12 @@ void Pose2MobileVetLinArm::forwardKinematics(const Pose2Vector& p,
   if (J_px_p) (*J_px_p)[1].block<6,4>(0,0) = Htso_base;
 
   // arm links
-  vector<Pose3> armjpx;
-  vector<Matrix> Jarm_jpx_jp;
+  vector<gtsam::Pose3> armjpx;
+  vector<gtsam::Matrix> Jarm_jpx_jp;
 
   arm_.updateBasePose(arm_base);
   arm_.forwardKinematics(p.configuration().tail(arm_.dof()), boost::none, armjpx, boost::none,
-      J_px_p ? boost::optional<vector<Matrix>&>(Jarm_jpx_jp) : boost::none);
+      J_px_p ? boost::optional<vector<gtsam::Matrix>&>(Jarm_jpx_jp) : boost::none);
 
   for (size_t i = 0; i < arm_.dof(); i++) {
     px[i+2] = armjpx[i];

@@ -66,23 +66,21 @@ public:
       boost::optional<gtsam::Matrix&> H3 = boost::none,
       boost::optional<gtsam::Matrix&> H4 = boost::none) const {
 
-    using namespace gtsam;
-
-    Matrix Hinv, Hcomp1, Hcomp2, Hlogmap;
-    Vector r;
+    gtsam::Matrix Hinv, Hcomp1, Hcomp2, Hlogmap;
+    gtsam::Vector r;
     if (H1 || H2 || H3 || H4)
-      r = traits<T>::Logmap(traits<T>::Compose(traits<T>::Inverse(pose1, Hinv),
+      r = gtsam::traits<T>::Logmap(gtsam::traits<T>::Compose(gtsam::traits<T>::Inverse(pose1, Hinv),
           pose2, Hcomp1, Hcomp2), Hlogmap);
     else
-      r = traits<T>::Logmap(traits<T>::Compose(traits<T>::Inverse(pose1, Hinv), pose2));
+      r = gtsam::traits<T>::Logmap(gtsam::traits<T>::Compose(gtsam::traits<T>::Inverse(pose1, Hinv), pose2));
 
     // jacobians
-    if (H1) *H1 = (Matrix(2*dof_, dof_) << Hlogmap * Hcomp1 * Hinv, Matrix::Zero(dof_, dof_)).finished();
-    if (H2) *H2 = (Matrix(2*dof_, dof_) << -delta_t_ * Matrix::Identity(dof_, dof_), -Matrix::Identity(dof_, dof_)).finished();
-    if (H3) *H3 = (Matrix(2*dof_, dof_) << Hlogmap * Hcomp2, Matrix::Zero(dof_, dof_)).finished();
-    if (H4) *H4 = (Matrix(2*dof_, dof_) << Matrix::Zero(dof_, dof_), Matrix::Identity(dof_, dof_)).finished();
+    if (H1) *H1 = (gtsam::Matrix(2*dof_, dof_) << Hlogmap * Hcomp1 * Hinv, gtsam::Matrix::Zero(dof_, dof_)).finished();
+    if (H2) *H2 = (gtsam::Matrix(2*dof_, dof_) << -delta_t_ * gtsam::Matrix::Identity(dof_, dof_), -gtsam::Matrix::Identity(dof_, dof_)).finished();
+    if (H3) *H3 = (gtsam::Matrix(2*dof_, dof_) << Hlogmap * Hcomp2, gtsam::Matrix::Zero(dof_, dof_)).finished();
+    if (H4) *H4 = (gtsam::Matrix(2*dof_, dof_) << gtsam::Matrix::Zero(dof_, dof_), gtsam::Matrix::Identity(dof_, dof_)).finished();
 
-    return (Vector(2*dof_) << (r - vel1 * delta_t_), (vel2 - vel1)).finished();
+    return (gtsam::Vector(2*dof_) << (r - vel1 * delta_t_), (vel2 - vel1)).finished();
   }
 
   /** number of variables attached to this factor */

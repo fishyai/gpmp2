@@ -66,14 +66,13 @@ public:
   gtsam::Vector evaluateError(const gpmp2::Pose2Vector& pose, 
       boost::optional<gtsam::Matrix&> H1 = boost::none) const {
 
-    using namespace gtsam;
     // get configuration
     const gtsam::Vector& conf = pose.configuration();
     // error vector conf.dim + 3, first 3 dims are all zeros
     // Jacobian size = conf.dim + 3 x conf.dim + 3, first 3 col are all zeros
     if (H1)
-      *H1 = Matrix::Zero(conf.size() + 3, conf.size() + 3);
-    Vector err(conf.size() + 3);
+      *H1 = gtsam::Matrix::Zero(conf.size() + 3, conf.size() + 3);
+    gtsam::Vector err(conf.size() + 3);
     for (size_t i = 0; i < 3; i++)
       err(i) = 0.0;
     for (size_t i = 0; i < (size_t)conf.size(); i++) {

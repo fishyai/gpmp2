@@ -21,7 +21,6 @@
 #include <CppUnitLite/TestHarness.h>
 
 using namespace std;
-using namespace gtsam;
 using namespace gpmp2;
 
 static const double tol = 1e-9;
@@ -30,7 +29,7 @@ static const double tol = 1e-9;
 
 // all fix size example used for test
 namespace gpmp2 {
-typedef ProductDynamicLieGroup<Point2, Pose2> Product;
+typedef ProductDynamicLieGroup<gtsam::Point2, gtsam::Pose2> Product;
 }
 
 namespace gtsam {
@@ -47,16 +46,16 @@ template<> struct traits<Product> : internal::DynamicLieGroupTraits<Product> {
 
 //******************************************************************************
 TEST(ProductDynamicLieGroup, ProductLieGroup) {
-  BOOST_CONCEPT_ASSERT((IsGroup<Product>));
-  BOOST_CONCEPT_ASSERT((IsManifold<Product>));
-  BOOST_CONCEPT_ASSERT((IsLieGroup<Product>));
+  BOOST_CONCEPT_ASSERT((gtsam::IsGroup<Product>));
+  BOOST_CONCEPT_ASSERT((gtsam::IsManifold<Product>));
+  BOOST_CONCEPT_ASSERT((gtsam::IsLieGroup<Product>));
   Product pair1;
-  Vector5 d;
+  gtsam::Vector5 d;
   d << 1, 2, 0.1, 0.2, 0.3;
-  Product expected(Point2(1, 2), Pose2::Expmap(Vector3(0.1, 0.2, 0.3)));
+  Product expected(gtsam::Point2(1, 2), gtsam::Pose2::Expmap(gtsam::Vector3(0.1, 0.2, 0.3)));
   Product pair2 = pair1.expmap(d);
   EXPECT(assert_equal(expected, pair2, 1e-9));
-  EXPECT(assert_equal(d, pair1.logmap(pair2), 1e-9));
+  EXPECT(gtsam::assert_equal(d, pair1.logmap(pair2), 1e-9));
 }
 
 /* ************************************************************************* */
@@ -64,16 +63,16 @@ Product compose_proxy(const Product& A, const Product& B) {
   return A.compose(B);
 }
 TEST( ProductDynamicLieGroup, compose ) {
-  Product state1(Point2(1, 2), Pose2(3, 4, 5)), state2 = state1;
+  Product state1(gtsam::Point2(1, 2), gtsam::Pose2(3, 4, 5)), state2 = state1;
 
-  Matrix actH1, actH2;
+  gtsam::Matrix actH1, actH2;
   state1.compose(state2, actH1, actH2);
-  Matrix numericH1 = numericalDerivativeDynamic<Product, Product>(
+  gtsam::Matrix numericH1 = numericalDerivativeDynamic<Product, Product>(
       boost::bind(compose_proxy, _1, state2), state1);
-  Matrix numericH2 = numericalDerivativeDynamic<Product, Product>(
+  gtsam::Matrix numericH2 = numericalDerivativeDynamic<Product, Product>(
       boost::bind(compose_proxy, state1, _1), state2);
-  EXPECT(assert_equal(numericH1, actH1, tol));
-  EXPECT(assert_equal(numericH2, actH2, tol));
+  EXPECT(gtsam::assert_equal(numericH1, actH1, tol));
+  EXPECT(gtsam::assert_equal(numericH2, actH2, tol));
 }
 
 /* ************************************************************************* */
@@ -81,16 +80,16 @@ Product between_proxy(const Product& A, const Product& B) {
   return A.between(B);
 }
 TEST( ProductDynamicLieGroup, between ) {
-  Product state1(Point2(1, 2), Pose2(3, 4, 5)), state2 = state1;
+  Product state1(gtsam::Point2(1, 2), gtsam::Pose2(3, 4, 5)), state2 = state1;
 
-  Matrix actH1, actH2;
+  gtsam::Matrix actH1, actH2;
   state1.between(state2, actH1, actH2);
-  Matrix numericH1 = numericalDerivativeDynamic<Product, Product>(
+  gtsam::Matrix numericH1 = numericalDerivativeDynamic<Product, Product>(
       boost::bind(between_proxy, _1, state2), state1);
-  Matrix numericH2 = numericalDerivativeDynamic<Product, Product>(
+  gtsam::Matrix numericH2 = numericalDerivativeDynamic<Product, Product>(
       boost::bind(between_proxy, state1, _1), state2);
-  EXPECT(assert_equal(numericH1, actH1, tol));
-  EXPECT(assert_equal(numericH2, actH2, tol));
+  EXPECT(gtsam::assert_equal(numericH1, actH1, tol));
+  EXPECT(gtsam::assert_equal(numericH2, actH2, tol));
 }
 
 /* ************************************************************************* */
@@ -98,66 +97,66 @@ Product inverse_proxy(const Product& A) {
   return A.inverse();
 }
 TEST( ProductDynamicLieGroup, inverse ) {
-  Product state1(Point2(1, 2), Pose2(3, 4, 5));
+  Product state1(gtsam::Point2(1, 2), gtsam::Pose2(3, 4, 5));
 
-  Matrix actH1;
+  gtsam::Matrix actH1;
   state1.inverse(actH1);
-  Matrix numericH1 = numericalDerivativeDynamic<Product, Product>(
+  gtsam::Matrix numericH1 = numericalDerivativeDynamic<Product, Product>(
       boost::bind(inverse_proxy, _1), state1);
-  EXPECT(assert_equal(numericH1, actH1, tol));
+  EXPECT(gtsam::assert_equal(numericH1, actH1, tol));
 }
 
 /* ************************************************************************* */
-Product expmap_proxy(const Vector5& vec) {
+Product expmap_proxy(const gtsam::Vector5& vec) {
   return Product::Expmap(vec);
 }
 TEST( ProductDynamicLieGroup, Expmap ) {
-  Vector5 vec;
+  gtsam::Vector5 vec;
   vec << 1, 2, 0.1, 0.2, 0.3;
 
-  Matrix actH;
+  gtsam::Matrix actH;
   Product::Expmap(vec, actH);
-  Matrix numericH = numericalDerivativeDynamic<Product, Vector5>(
+  gtsam::Matrix numericH = numericalDerivativeDynamic<Product, gtsam::Vector5>(
       boost::bind(expmap_proxy, _1), vec);
-  EXPECT(assert_equal(numericH, actH, tol));
+  EXPECT(gtsam::assert_equal(numericH, actH, tol));
 }
 
 /* ************************************************************************* */
-Vector5 logmap_proxy(const Product& p) {
+gtsam::Vector5 logmap_proxy(const Product& p) {
   return Product::Logmap(p);
 }
 TEST( ProductDynamicLieGroup, Logmap ) {
-  Product state(Point2(1, 2), Pose2(3, 4, 5));
+  Product state(gtsam::Point2(1, 2), gtsam::Pose2(3, 4, 5));
 
-  Matrix actH;
+  gtsam::Matrix actH;
   Product::Logmap(state, actH);
-  Matrix numericH = numericalDerivativeDynamic<Vector5, Product>(
+  gtsam::Matrix numericH = numericalDerivativeDynamic<gtsam::Vector5, Product>(
       boost::bind(logmap_proxy, _1), state);
-  EXPECT(assert_equal(numericH, actH, tol));
+  EXPECT(gtsam::assert_equal(numericH, actH, tol));
 }
 
 /* ************************************************************************* */
 TEST( ProductDynamicLieGroup, optimization ) {
-  Product state1(Point2(1, 2), Pose2(3, 4, 5)), state2(Point2(3, 4), Pose2(1, 5, 7));
+  Product state1(gtsam::Point2(1, 2), gtsam::Pose2(3, 4, 5)), state2(gtsam::Point2(3, 4), gtsam::Pose2(1, 5, 7));
 
   // prior factor graph
-  noiseModel::Isotropic::shared_ptr model_prior =
-      noiseModel::Isotropic::Sigma(5, 0.001);
-  NonlinearFactorGraph graph;
-  graph.add(PriorFactor<Product>(Symbol('x', 1), state1, model_prior));
+  gtsam::noiseModel::Isotropic::shared_ptr model_prior =
+      gtsam::noiseModel::Isotropic::Sigma(5, 0.001);
+  gtsam::NonlinearFactorGraph graph;
+  graph.add(gtsam::PriorFactor<Product>(gtsam::Symbol('x', 1), state1, model_prior));
 
   // init values
-  Values init_values;
-  init_values.insert(Symbol('x', 1), state2);
+  gtsam::Values init_values;
+  init_values.insert(gtsam::Symbol('x', 1), state2);
 
   // optimize!
-  GaussNewtonParams parameters;
-  GaussNewtonOptimizer optimizer(graph, init_values, parameters);
+  gtsam::GaussNewtonParams parameters;
+  gtsam::GaussNewtonOptimizer optimizer(graph, init_values, parameters);
   optimizer.optimize();
-  Values values = optimizer.values();
+  gtsam::Values values = optimizer.values();
 
   EXPECT_DOUBLES_EQUAL(0, graph.error(values), 1e-6);
-  EXPECT(assert_equal(state1, values.at<Product>(Symbol('x', 1)), 1e-9));
+  EXPECT(assert_equal(state1, values.at<Product>(gtsam::Symbol('x', 1)), 1e-9));
 }
 
 //******************************************************************************

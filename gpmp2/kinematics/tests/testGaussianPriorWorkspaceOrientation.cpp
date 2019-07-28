@@ -19,62 +19,61 @@
 #include <iostream>
 
 using namespace std;
-using namespace gtsam;
 using namespace gpmp2;
 
 
 /* ************************************************************************** */
 TEST(GaussianPriorWorkspaceOrientationArm, error) {
 
-  Vector2 a(1, 1), alpha(M_PI/2, 0), d(0, 0);
+  gtsam::Vector2 a(1, 1), alpha(M_PI/2, 0), d(0, 0);
   ArmModel arm = ArmModel(Arm(2, a, alpha, d), BodySphereVector());
-  Vector2 q;
-  Rot3 des;
-  Vector actual, expect;
-  Matrix H_exp, H_act;
-  noiseModel::Gaussian::shared_ptr cost_model = noiseModel::Isotropic::Sigma(3, 1.0);
+  gtsam::Vector2 q;
+  gtsam::Rot3 des;
+  gtsam::Vector actual, expect;
+  gtsam::Matrix H_exp, H_act;
+  gtsam::noiseModel::Gaussian::shared_ptr cost_model = gtsam::noiseModel::Isotropic::Sigma(3, 1.0);
 
-  q = Vector2(M_PI/4.0, -M_PI/2);
-  des = Rot3(Rot3::RzRyRx(0, 0, -M_PI/2));
+  q = gtsam::Vector2(M_PI/4.0, -M_PI/2);
+  des = gtsam::Rot3(gtsam::Rot3::RzRyRx(0, 0, -M_PI/2));
   GaussianPriorWorkspaceOrientationArm factor(0, arm, 1, des, cost_model);
   actual = factor.evaluateError(q, H_act);
-  expect = Vector3(-0.613943126, 1.48218982, 0.613943126);
-  H_exp = numericalDerivative11(boost::function<Vector3(const Vector2&)>(
+  expect = gtsam::Vector3(-0.613943126, 1.48218982, 0.613943126);
+  H_exp = gtsam::numericalDerivative11(boost::function<gtsam::Vector3(const gtsam::Vector2&)>(
       boost::bind(&GaussianPriorWorkspaceOrientationArm::evaluateError, factor, _1, boost::none)), q, 1e-6);
-  EXPECT(assert_equal(expect, actual, 1e-6));
-  EXPECT(assert_equal(H_exp, H_act, 1e-6));
+  EXPECT(gtsam::assert_equal(expect, actual, 1e-6));
+  EXPECT(gtsam::assert_equal(H_exp, H_act, 1e-6));
 }
 
 
 /* ************************************************************************** */
 TEST(GaussianPriorWorkspaceOrientationArm, optimization) {
 
-  noiseModel::Gaussian::shared_ptr cost_model = noiseModel::Isotropic::Sigma(3, 0.1);
+  gtsam::noiseModel::Gaussian::shared_ptr cost_model = gtsam::noiseModel::Isotropic::Sigma(3, 0.1);
 
-  Vector a = (Vector(2) << 1, 1).finished();
-  Vector alpha = (Vector(2) << 0, 0).finished();
-  Vector d = (Vector(2) << 0, 0).finished();
+  gtsam::Vector a = (gtsam::Vector(2) << 1, 1).finished();
+  gtsam::Vector alpha = (gtsam::Vector(2) << 0, 0).finished();
+  gtsam::Vector d = (gtsam::Vector(2) << 0, 0).finished();
   ArmModel arm = ArmModel(Arm(2, a, alpha, d), BodySphereVector());
-  Rot3 des = Rot3();
+  gtsam::Rot3 des = gtsam::Rot3();
 
-  Key qkey = Symbol('x', 0);
-  Vector qinit = (Vector(2) << M_PI/2, M_PI/2).finished();
-  Vector q = (Vector(2) << 0, 0).finished();
+  gtsam::Key qkey = gtsam::Symbol('x', 0);
+  gtsam::Vector qinit = (gtsam::Vector(2) << M_PI/2, M_PI/2).finished();
+  gtsam::Vector q = (gtsam::Vector(2) << 0, 0).finished();
 
-  NonlinearFactorGraph graph;
+  gtsam::NonlinearFactorGraph graph;
   graph.add(GaussianPriorWorkspaceOrientationArm(qkey, arm, 1, des, cost_model));
-  Values init_values;
+  gtsam::Values init_values;
   init_values.insert(qkey, qinit);
 
-  LevenbergMarquardtParams parameters;
+  gtsam::LevenbergMarquardtParams parameters;
   parameters.setVerbosity("ERROR");
   parameters.setAbsoluteErrorTol(1e-12);
-  LevenbergMarquardtOptimizer optimizer(graph, init_values, parameters);
+  gtsam::LevenbergMarquardtOptimizer optimizer(graph, init_values, parameters);
   optimizer.optimize();
-  Values results = optimizer.values();
+  gtsam::Values results = optimizer.values();
 
   EXPECT_DOUBLES_EQUAL(0, graph.error(results), 1e-3);
-  EXPECT(assert_equal(q, results.at<Vector>(qkey), 1e-3));
+  EXPECT(gtsam::assert_equal(q, results.at<gtsam::Vector>(qkey), 1e-3));
 }
 
 /* ************************************************************************** */
