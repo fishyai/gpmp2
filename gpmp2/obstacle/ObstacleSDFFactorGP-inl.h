@@ -36,7 +36,7 @@ gtsam::Vector ObstacleSDFFactorGP<ROBOT, GPINTER>::evaluateError(
 
 
   // run forward kinematics of this configuration
-  vector<gtsam::Point3> sph_centers;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> sph_centers;
   vector<gtsam::Matrix> J_px_jp;
   if (H1)
     robot_.sphereCenters(conf, sph_centers, J_px_jp);

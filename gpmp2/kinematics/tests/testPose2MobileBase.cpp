@@ -29,7 +29,7 @@ gtsam::Pose3 fkpose(const Pose2MobileBase& r, const gtsam::Pose2& p, const gtsam
 
 gtsam::Vector3 fkvelocity(const Pose2MobileBase& r, const gtsam::Pose2& p, const gtsam::Vector& v) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   r.forwardKinematics(p, v, pos, vel);
   return vel[0];
 }
@@ -42,7 +42,7 @@ TEST(Pose2MobileBase, Example) {
   gtsam::Vector3 qdot;
   gtsam::Vector qdymc;
   vector<gtsam::Pose3> pvec_exp, pvec_act;
-  vector<gtsam::Vector3> vvec_exp, vvec_act;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vvec_exp, vvec_act;
   vector<gtsam::Matrix> vJp_exp, vJp_act, vJv_exp, vJv_act;
   vector<gtsam::Matrix> pJp_exp, pJp_act;
 

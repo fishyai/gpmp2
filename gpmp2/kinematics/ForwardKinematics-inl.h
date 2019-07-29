@@ -46,7 +46,7 @@ gtsam::Matrix ForwardKinematics<POSE, VELOCITY>::forwardKinematicsVel(const Pose
     const Velocity& jv) const {
 
   std::vector<gtsam::Pose3> jpx;
-  std::vector<gtsam::Vector3> jvx;
+  std::vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> jvx;
   forwardKinematics(jp, jv, jpx, jvx);
 
   // convert vector in matrix

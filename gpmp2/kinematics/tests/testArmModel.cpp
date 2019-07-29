@@ -19,7 +19,7 @@ using namespace gpmp2;
 
 // sph pos wrapper
 gtsam::Point3 sph_pos_wrapper_batch(const ArmModel& arm, const gtsam::Vector& jp, size_t i) {
-  vector<gtsam::Point3> pos;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> pos;
   arm.sphereCenters(jp, pos);
   return pos[i];
 }
@@ -37,7 +37,7 @@ TEST(ArmModel, 2linkPlanarExamples) {
   Arm abs_arm(2, a, alpha, d, base_pose);
   gtsam::Vector2 q;
 
-  vector<gtsam::Point3> sph_centers_exp, sph_centers_act;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> sph_centers_exp, sph_centers_act;
   vector<gtsam::Matrix> J_center_q_act;
   gtsam::Matrix Jcq_exp, Jcq_act;
 

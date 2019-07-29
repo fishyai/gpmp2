@@ -62,11 +62,14 @@ public:
    *  @param jvx joint velocity in work space
    *  @param J_jpx_jp et al. optional Jacobians
    **/
-  void forwardKinematics(const gtsam::Vector& jp, boost::optional<const gtsam::Vector&> jv,
-      std::vector<gtsam::Pose3>& jpx, boost::optional<std::vector<gtsam::Vector3>&> jvx,
-      boost::optional<std::vector<gtsam::Matrix>&> J_jpx_jp = boost::none,
-      boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jp = boost::none,
-      boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jv = boost::none) const;
+  void forwardKinematics(
+    const gtsam::Vector& jp,
+    boost::optional<const gtsam::Vector&> jv,
+    std::vector<gtsam::Pose3>& jpx,
+    boost::optional<std::vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&> jvx,
+    boost::optional<std::vector<gtsam::Matrix>&> J_jpx_jp = boost::none,
+    boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jp = boost::none,
+    boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jv = boost::none) const;
 
 
   /// update base pose in const

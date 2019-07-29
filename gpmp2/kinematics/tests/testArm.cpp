@@ -20,14 +20,14 @@ using namespace gpmp2;
 // fk wrapper
 gtsam::Pose3 fkpose(const Arm& arm, const gtsam::Vector& jp, const gtsam::Vector& jv, size_t i) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   arm.forwardKinematics(jp, jv, pos, vel);
   return pos[i];
 }
 
 gtsam::Vector3 fkvelocity(const Arm& arm, const gtsam::Vector& jp, const gtsam::Vector& jv, size_t i) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   arm.forwardKinematics(jp, jv, pos, vel);
   return vel[i];
 }
@@ -42,7 +42,7 @@ TEST(Arm, 2linkPlanarExamples) {
   gtsam::Vector2 q, qdot;
   gtsam::Vector qdymc;		// dynamic size version qdot
   vector<gtsam::Pose3> pvec_exp, pvec_act;
-  vector<gtsam::Vector3> vvec_exp, vvec_act;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vvec_exp, vvec_act;
   vector<gtsam::Matrix> vJp_exp, vJp_act, vJv_exp, vJv_act;
   vector<gtsam::Matrix> pJp_exp, pJp_act;
 
@@ -217,9 +217,9 @@ TEST(Arm, 3link3Dexample) {
   Arm arm(3, a, alpha, d);
   gtsam::Vector3 q, qdot;
   gtsam::Vector qdymc;		// dynamic size version qdot
-  vector<gtsam::Point3> pointvec_exp;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> pointvec_exp;
   vector<gtsam::Pose3> pvec_act;
-  vector<gtsam::Vector3> vvec_exp, vvec_act;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vvec_exp, vvec_act;
   vector<gtsam::Matrix> vJp_exp, vJp_act, vJv_exp, vJv_act;
   vector<gtsam::Matrix> pJp_exp, pJp_act;
 
@@ -288,9 +288,9 @@ TEST(Arm, WAMexample) {
   Arm arm(7, a, alpha, d);
   gtsam::Vector7 q, qdot;
   gtsam::Vector qdymc;		// dynamic size version qdot
-  vector<gtsam::Point3> pvec_exp;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> pvec_exp;
   vector<gtsam::Pose3> pvec_act1, pvec_act2;
-  vector<gtsam::Vector3> vvec_exp, vvec_act;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vvec_exp, vvec_act;
   vector<gtsam::Matrix> pJp_exp, pJp_act1, pJp_act2, vJp_exp, vJp_act, vJv_exp, vJv_act;
 
   // example

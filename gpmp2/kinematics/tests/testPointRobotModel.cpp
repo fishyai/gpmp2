@@ -19,21 +19,21 @@ using namespace gpmp2;
 // fk wrapper
 gtsam::Pose3 fkpose(const PointRobot& pR, const gtsam::Vector& jp, const gtsam::Vector& jv, size_t i) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   pR.forwardKinematics(jp, jv, pos, vel);
   return pos[i];
 }
 
 gtsam::Vector3 fkvelocity(const PointRobot& pR, const gtsam::Vector& jp, const gtsam::Vector& jv, size_t i) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   pR.forwardKinematics(jp, jv, pos, vel);
   return vel[i];
 }
 
 // sphere position wrapper
 gtsam::Point3 sph_pos_wrapper_batch(const PointRobotModel& pR_model, const gtsam::Vector& jp, size_t i) {
-  vector<gtsam::Point3> pos;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> pos;
   pR_model.sphereCenters(jp, pos);
   return pos[i];
 }
@@ -49,7 +49,7 @@ TEST(PointRobot, 2DExample) {
   PointRobot pR(2,1);
   gtsam::Vector2 p, v;
   vector<gtsam::Pose3> pvec_exp, pvec_act;
-  vector<gtsam::Vector3> vvec_exp, vvec_act;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vvec_exp, vvec_act;
   vector<gtsam::Matrix> vJp_exp, vJp_act, vJv_exp, vJv_act;
   vector<gtsam::Matrix> pJp_exp, pJp_act;
 
@@ -88,7 +88,7 @@ TEST(PointRobotModel, 2DExample) {
   PointRobot pR(2,1);
   gtsam::Vector2 p;
 
-  vector<gtsam::Point3> sph_centers_exp, sph_centers_act;
+  vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> sph_centers_exp, sph_centers_act;
   vector<gtsam::Matrix> J_center_q_act;
   gtsam::Matrix Jcq_exp, Jcq_act;
 

@@ -23,14 +23,14 @@ using namespace gpmp2;
 // fk wrapper
 gtsam::Pose3 fkpose(const Pose2MobileArm& r, const Pose2Vector& p, const gtsam::Vector& v, size_t i) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   r.forwardKinematics(p, boost::none, pos, boost::none);
   return pos[i];
 }
 
 gtsam::Vector3 fkvelocity(const Pose2MobileArm& r, const Pose2Vector& p, const gtsam::Vector& v, size_t i) {
   vector<gtsam::Pose3> pos;
-  vector<gtsam::Vector3> vel;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vel;
   r.forwardKinematics(p, v, pos, vel);
   return vel[i];
 }
@@ -47,7 +47,7 @@ TEST(Pose2MobileArm, 2linkPlanarExamples) {
   gtsam::Vector5 qdot;
   gtsam::Vector qdymc;
   vector<gtsam::Pose3> pvec_exp, pvec_act;
-  vector<gtsam::Vector3> vvec_exp, vvec_act;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> vvec_exp, vvec_act;
   vector<gtsam::Matrix> vJp_exp, vJp_act, vJv_exp, vJv_act;
   vector<gtsam::Matrix> pJp_exp, pJp_act;
 

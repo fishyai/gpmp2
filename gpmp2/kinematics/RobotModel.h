@@ -62,8 +62,10 @@ public:
 
   /// given pose in configuration space, solve sphere center vector in work space
   /// with optional associated jacobian of pose
-  void sphereCenters(const Pose& jp, std::vector<gtsam::Point3>& sph_centers,
-      boost::optional<std::vector<gtsam::Matrix>&> J_point_conf = boost::none) const ;
+  void sphereCenters(
+    const Pose& jp,
+    std::vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>>& sph_centers,
+    boost::optional<std::vector<gtsam::Matrix>&> J_point_conf = boost::none) const ;
 
   /// given pose in configuration space, solve a single sphere center in work space
   /// for fast call of a single sphere

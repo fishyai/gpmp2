@@ -27,8 +27,10 @@ Pose2MobileArm::Pose2MobileArm(const Arm& arm, const gtsam::Pose3& base_T_arm) :
 
 /* ************************************************************************** */
 void Pose2MobileArm::forwardKinematics(
-    const Pose2Vector& p, boost::optional<const gtsam::Vector&> v,
-    std::vector<gtsam::Pose3>& px, boost::optional<std::vector<gtsam::Vector3>&> vx,
+    const Pose2Vector& p,
+    boost::optional<const gtsam::Vector&> v,
+    std::vector<gtsam::Pose3>& px,
+    boost::optional<std::vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&> vx,
     boost::optional<std::vector<gtsam::Matrix>&> J_px_p,
     boost::optional<std::vector<gtsam::Matrix>&> J_vx_p,
     boost::optional<std::vector<gtsam::Matrix>&> J_vx_v) const {
@@ -75,20 +77,21 @@ void Pose2MobileArm::forwardKinematics(
 
   // arm links
   vector<gtsam::Pose3> armjpx;
-  vector<gtsam::Vector3> armjvx;
+  vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>> armjvx;
   vector<gtsam::Matrix> Jarm_jpx_jp, Jarm_jvx_jp, Jarm_jvx_jv;
 
   arm_.updateBasePose(arm_base);
   if (v) {
     const gtsam::Vector varm = v->tail(arm_.dof());
     arm_.forwardKinematics(p.configuration(), boost::optional<const gtsam::Vector&>(varm),
-        armjpx, vx ? boost::optional<vector<gtsam::Vector3>&>(armjvx) : boost::none,
+        armjpx,
+        vx ? boost::optional<vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&>(armjvx) : boost::none,
         J_px_p ? boost::optional<vector<gtsam::Matrix>&>(Jarm_jpx_jp) : boost::none,
         J_vx_p ? boost::optional<vector<gtsam::Matrix>&>(Jarm_jvx_jp) : boost::none,
         J_vx_v ? boost::optional<vector<gtsam::Matrix>&>(Jarm_jvx_jv) : boost::none);
   } else {
     arm_.forwardKinematics(p.configuration(), boost::none,
-        armjpx, vx ? boost::optional<vector<gtsam::Vector3>&>(armjvx) : boost::none,
+        armjpx, vx ? boost::optional<vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&>(armjvx) : boost::none,
         J_px_p ? boost::optional<vector<gtsam::Matrix>&>(Jarm_jpx_jp) : boost::none);
   }
 

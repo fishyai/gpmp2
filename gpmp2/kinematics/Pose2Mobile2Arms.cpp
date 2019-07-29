@@ -30,8 +30,10 @@ Pose2Mobile2Arms::Pose2Mobile2Arms(const Arm& arm1, const Arm& arm2,
 
 /* ************************************************************************** */
 void Pose2Mobile2Arms::forwardKinematics(
-    const Pose2Vector& p, boost::optional<const gtsam::Vector&> v,
-    std::vector<gtsam::Pose3>& px, boost::optional<std::vector<gtsam::Vector3>&> vx,
+    const Pose2Vector& p,
+    boost::optional<const gtsam::Vector&> v,
+    std::vector<gtsam::Pose3>& px,
+    boost::optional<std::vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&> vx,
     boost::optional<std::vector<gtsam::Matrix>&> J_px_p,
     boost::optional<std::vector<gtsam::Matrix>&> J_vx_p,
     boost::optional<std::vector<gtsam::Matrix>&> J_vx_v) const {

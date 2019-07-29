@@ -32,8 +32,10 @@ Arm::Arm(size_t dof, const gtsam::Vector& a, const gtsam::Vector& alpha, const g
 
 /* ************************************************************************** */
 void Arm::forwardKinematics(
-    const gtsam::Vector& jp, boost::optional<const gtsam::Vector&> jv,
-    std::vector<gtsam::Pose3>& jpx, boost::optional<std::vector<gtsam::Vector3>&> jvx,
+    const gtsam::Vector& jp,
+    boost::optional<const gtsam::Vector&> jv,
+    std::vector<gtsam::Pose3>& jpx,
+    boost::optional<std::vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&> jvx,
     boost::optional<std::vector<gtsam::Matrix>&> J_jpx_jp,
     boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jp,
     boost::optional<std::vector<gtsam::Matrix>&> J_jvx_jv) const {
@@ -48,13 +50,13 @@ void Arm::forwardKinematics(
   if (J_jvx_jv) J_jvx_jv->assign(dof(), gtsam::Matrix::Zero(3, dof()));
 
   // variables
-  vector<gtsam::Matrix4> H(dof());
-  vector<gtsam::Matrix4> Ho(dof()+1); // start from 1
+  vector<gtsam::Matrix4, Eigen::aligned_allocator<gtsam::Matrix4>> H(dof());
+  vector<gtsam::Matrix4, Eigen::aligned_allocator<gtsam::Matrix4>> Ho(dof()+1); // start from 1
   vector<gtsam::Matrix> J;
   if (jv) J.assign(dof(), gtsam::Matrix::Zero(3, dof()));
   // vars cached for calculate output Jacobians
-  vector<gtsam::Matrix4> dH(dof());
-  vector<gtsam::Matrix4> Hoinv(dof()+1); // start from 1
+  vector<gtsam::Matrix4, Eigen::aligned_allocator<gtsam::Matrix4>> dH(dof());
+  vector<gtsam::Matrix4, Eigen::aligned_allocator<gtsam::Matrix4>> Hoinv(dof()+1); // start from 1
 
 
   // first iteration
@@ -85,14 +87,24 @@ void Arm::forwardKinematics(
   }
 
   // cache dHoi_dqj (DOF^2 memory), only fill in i >= j since others are all zeros
-  vector<vector<gtsam::Matrix4> > dHo_dq(dof(), vector<gtsam::Matrix4>(dof()));
-  if (J_jpx_jp || J_jvx_jp)
-    for (size_t i = 0; i < dof(); i++)
-      for (size_t j = 0; j <= i; j++)
-        if (i > j)
-          dHo_dq[i][j] = Ho[j] * dH[j] * Hoinv[j+1] * Ho[i+1];
-        else
-          dHo_dq[i][j] = Ho[j] * dH[j];
+  vector<gtsam::Matrix4, Eigen::aligned_allocator<gtsam::Matrix4>> dHo_dq(dof() * dof(), gtsam::Matrix4());
+  // vector<vector<gtsam::Matrix4>> dHo_dq(
+  //   dof(),
+  //   vector<gtsam::Matrix4>(dof()));
+
+  if (J_jpx_jp || J_jvx_jp) {
+    for (size_t i = 0; i < dof(); i++) {
+      for (size_t j = 0; j <= i; j++) {
+        if (i > j) {
+          // dHo_dq[i][j] = Ho[j] * dH[j] * Hoinv[j + 1] * Ho[i + 1];
+          dHo_dq[i * dof() + j] = Ho[j] * dH[j] * Hoinv[j + 1] * Ho[i + 1];
+        } else {
+          // dHo_dq[i][j] = Ho[j] * dH[j];
+          dHo_dq[i * dof() + j] = Ho[j] * dH[j];
+        }
+      }
+    }
+  }
 
   // start calculating Forward and velocity kinematics / Jacobians
   for (size_t i = 0; i < dof(); i++) {
@@ -111,7 +123,7 @@ void Arm::forwardKinematics(
       // Jp each col
       const gtsam::Matrix4 inv_jpx_i = jpx[i].inverse().matrix();
       for (size_t j = 0; j <= i; j++) {
-        const gtsam::Matrix4 sym_se3 = inv_jpx_i * dHo_dq[i][j];
+        const gtsam::Matrix4 sym_se3 = inv_jpx_i * dHo_dq[i * dof() + j];
         Jp.col(j) = (gtsam::Vector6() << gtsam::Vector3(sym_se3(2,1), sym_se3(0,2),
             sym_se3(1,0)), sym_se3.col(3).head<3>()).finished();
       }
@@ -128,12 +140,12 @@ void Arm::forwardKinematics(
 
         // for d_Ji_qj only first i cols have values
         // d_Ji_qj.col(k) = d(getJvj(i, k-1))_dqj  (k <= i)
-        d_Ji_qj.col(0) = getdJvj(Ho[i+1], Ho[0], dHo_dq[i][j], gtsam::Matrix4::Zero());    // k-1 < 0, use zero for dH-1
+        d_Ji_qj.col(0) = getdJvj(Ho[i+1], Ho[0], dHo_dq[i * dof() + j], gtsam::Matrix4::Zero());    // k-1 < 0, use zero for dH-1
         for (size_t k = 1; k <= i; k++) {
-          if (k-1 >= j)
-            d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dHo_dq[i][j], dHo_dq[k-1][j]);
+          if (k-1 >= j) 
+            d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dHo_dq[i * dof() + j], dHo_dq[(k-1) * dof() + j]);
           else
-            d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dHo_dq[i][j], gtsam::Matrix4::Zero());    // zero dHo_dq when j > k-1
+            d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dHo_dq[i * dof() + j], gtsam::Matrix4::Zero());    // zero dHo_dq when j > k-1
         }
         Jv.col(j) = d_Ji_qj * (*jv);
       }

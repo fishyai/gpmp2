@@ -17,8 +17,10 @@ namespace gpmp2 {
 
 /* ************************************************************************** */
 void Pose2MobileBase::forwardKinematics(
-    const gtsam::Pose2& p, boost::optional<const gtsam::Vector&> v,
-    std::vector<gtsam::Pose3>& px, boost::optional<std::vector<gtsam::Vector3>&> vx,
+    const gtsam::Pose2& p,
+    boost::optional<const gtsam::Vector&> v,
+    std::vector<gtsam::Pose3>& px,
+    boost::optional<std::vector<gtsam::Vector3, Eigen::aligned_allocator<gtsam::Vector3>>&> vx,
     boost::optional<std::vector<gtsam::Matrix>&> J_px_p,
     boost::optional<std::vector<gtsam::Matrix>&> J_vx_p,
     boost::optional<std::vector<gtsam::Matrix>&> J_vx_v) const {

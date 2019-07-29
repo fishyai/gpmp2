@@ -10,7 +10,7 @@ namespace gpmp2 {
 /* ************************************************************************** */
 template <class FK>
 void RobotModel<FK>::sphereCenters(const Pose& jp,
-    std::vector<gtsam::Point3>& sph_centers,
+    std::vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>>& sph_centers,
     boost::optional<std::vector<gtsam::Matrix>&> J_point_conf) const {
 
   // apply fk
@@ -71,7 +71,7 @@ gtsam::Point3 RobotModel<FK>::sphereCenter(size_t sph_idx, const Pose& jp,
 template <class FK>
 gtsam::Matrix RobotModel<FK>::sphereCentersMat(const Pose& jp) const {
 
-  std::vector<gtsam::Point3> sph_centers;
+  std::vector<gtsam::Point3, Eigen::aligned_allocator<gtsam::Point3>> sph_centers;
   sphereCenters(jp, sph_centers);
 
   // convert to matrix
