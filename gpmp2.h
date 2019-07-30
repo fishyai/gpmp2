@@ -13,7 +13,8 @@ class gtsam::Values;
 virtual class gtsam::noiseModel::Base;
 virtual class gtsam::NonlinearFactor;
 virtual class gtsam::NonlinearFactorGraph;
-virtual class gtsam::NoiseModelFactor;
+virtual class gtsam::NoiseModelFactor : gtsam::NonlinearFactor;
+
 
 namespace gpmp2 {
 

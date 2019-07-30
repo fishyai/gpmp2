@@ -88,7 +88,7 @@ for i in range(total_time_step + 1):
 
     if i == total_time_step:
         graph.add(gtsam.PriorFactorVector(key_pos, end_conf, pose_fix))
-        graph.add(gtsam.PriorFactorVector(key_pos, end_vel, vel_fix))
+        graph.add(gtsam.PriorFactorVector(key_vel, end_vel, vel_fix))
 
     key_pos1 = gtsam.symbol(ord('x'), i - 1)
     key_pos2 = gtsam.symbol(ord('x'), i)
@@ -139,20 +139,16 @@ for i in range(total_time_step + 1):
             )
 
 # Optimize!
-# use_trustregion_opt = False
-#
-# if use_trustregion_opt:
-#     parameters = gtsam.DoglegParams()
-#     parameters.setVerbosity('ERROR')
-#     optimizer = gtsam.DoglegOptimizer(graph, init_values, parameters)
-# else:
-#     parameters = gtsam.GaussNewtonParams()
-#     parameters.setVerbosity('ERROR')
-#     optimizer = gtsam.GaussNewtonOptimizer(graph, init_values, parameters)
+use_trustregion_opt = False
 
-parameters = gtsam.LevenbergMarquardtParams()
-parameters.setVerbosity('ERROR')
-optimizer = gtsam.LevenbergMarquardtOptimizer(graph, init_values, parameters)
+if use_trustregion_opt:
+    parameters = gtsam.DoglegParams()
+    parameters.setVerbosity('ERROR')
+    optimizer = gtsam.DoglegOptimizer(graph, init_values, parameters)
+else:
+    parameters = gtsam.GaussNewtonParams()
+    parameters.setVerbosity('ERROR')
+    optimizer = gtsam.GaussNewtonOptimizer(graph, init_values, parameters)
 
 optimizer.optimize()
 result = optimizer.values()
@@ -179,11 +175,18 @@ line, = ax.plot(
     linewidth=2
 )
 
+
 def animate(i):
     line.set_xdata(positions[i][0, :])
     line.set_ydata(positions[i][1, :])
 
-anim = animation.FuncAnimation(fig, animate, interval=100, frames=total_time_step)
+
+anim = animation.FuncAnimation(
+    fig,
+    animate,
+    interval=100,
+    frames=total_time_step,
+)
 
 plt.draw()
 
