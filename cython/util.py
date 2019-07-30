@@ -23,8 +23,10 @@ class Dataset2D(object):
         self.map = np.zeros((self.rows, self.cols), dtype=np.float64)
 
     @classmethod
-    def get(cls, name):
-        if name == 'OneObstacleDataset':
+    def get(cls, name=None):
+        if name is None:
+            dataset = cls(300, 300, (-1, -1), 0.01)
+        elif name == 'OneObstacleDataset':
             dataset = cls(300, 300, (-1, -1), 0.01)
             dataset._add_obstacle((190, 160), (60, 80))
 
@@ -94,7 +96,7 @@ class Dataset2D(object):
 
         return sdf
 
-    def getSDFPlot(self, field, epsilon_dist=0):
+    def get_sdf_plot(self, field, epsilon_dist=0):
         plt.figure()
         plt.set_cmap('magma')
         grid_rows = field.shape[0]
@@ -116,7 +118,7 @@ class Dataset2D(object):
         )
         plt.colorbar()
 
-    def getEvidenceMapPlot(self):
+    def get_evidence_map_plot(self):
         # TODO fix this to match matlab code better
         figure = plt.figure()
         ax = figure.add_subplot(111)
@@ -132,18 +134,6 @@ class Dataset2D(object):
                 grid_corner_y
             ],
         )
-        # ax.axis('equal')
-        # ax.set(
-        #     xlim=(
-        #         self.origin_x - self.cell_size / 2,
-        #         grid_corner_x + self.cell_size / 2
-        #     ),
-        #     ylim=(
-        #         self.origin_y - self.cell_size / 2,
-        #         grid_corner_y + self.cell_size / 2
-        #     )
-        # )
-        # plt.colorbar()
         return figure, ax
 
     def _get_center(self, x, y):
@@ -169,7 +159,7 @@ class Dataset2D(object):
         ] = 1
 
 
-def generateArm(arm_type, base_pose=None):
+def generate_arm(arm_type, base_pose=None):
     if base_pose is None:
         base_pose = gtsam.Pose3(
             gtsam.Rot3(np.identity(3)),
@@ -211,7 +201,7 @@ def generateArm(arm_type, base_pose=None):
     return gpmp2.ArmModel(arm, sphere_vec)
 
 
-def getPlanarArmPlot(fk_model, conf, color, width):
+def get_planar_arm_plot(fk_model, conf, color, width):
     # TODO clean this up to be more like matlab
     _position = fk_model.forwardKinematicsPosition(conf)
     # Get rid of homogeneous coordinates
@@ -221,8 +211,6 @@ def getPlanarArmPlot(fk_model, conf, color, width):
     position = np.zeros((_position.shape[0], _position.shape[1] + 1))
     position[:, 1:] = _position
     plt.plot(position[0, :], position[1, :], color=color, linewidth=width)
-    print(position[0, :])
-    print(position[1, :])
     plt.plot(
         position[0, :-1],
         position[1, :-1],
@@ -233,27 +221,5 @@ def getPlanarArmPlot(fk_model, conf, color, width):
     return position
 
 
-def getAnimatedPlanarTrajectory(fig, ax, fk_model, confs):
-    print('ummmmmmmmm hello')
-
-    line, = ax.plot([], [], 'ro')
-
-    def init():
-        print('get it dude')
-        line.set_data(confs[0][0, :], confs[0][1, :])
-        return line,
-
-    def animate(frame):
-        x = confs[frame][0, :]
-        y = confs[frame][1, :]
-        line.set_data(x, y)
-        print(line)
-        return line,
-
-    ani = animation.FuncAnimation(
-        fig,
-        animate,
-        frames=range(1, len(confs)),
-        blit=True,
-        init_func=init,
-    )
+def symbol(name, value):
+    return gtsam.symbol(ord(name), value)

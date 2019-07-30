@@ -9,28 +9,15 @@ import matplotlib.animation as animation
 
 import argparse
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(
-        description='Optimize a simple 2D dataset'
-    )
-    parser.add_argument('--plot', action='store_true')
-    args = parser.parse_args()
-
+def plan(plot=False):
     # Small dataset
     dataset = util.Dataset2D.get('OneObstacleDataset')
-    rows = dataset.rows
-    cols = dataset.cols
-    cell_size = dataset.cell_size
     origin_point2 = gtsam.Point2(dataset.origin_x, dataset.origin_y)
 
     # Signed distance field
     field = dataset.SDF()
-    sdf = gpmp2.PlanarSDF(origin_point2, cell_size, field)
-
-    if args.plot:
-        # TODO update this to be more detailed
-        dataset.getSDFPlot(field)
+    sdf = gpmp2.PlanarSDF(origin_point2, dataset.cell_size, field)
 
     # Settings
     total_time_sec = 5.0
@@ -40,7 +27,7 @@ if __name__ == '__main__':
     check_inter = total_check_step / total_time_step - 1
 
     use_gp_inter = True
-    arm = util.generateArm('SimpleTwoLinksArm')
+    arm = util.generate_arm('SimpleTwoLinksArm')
 
     # GP
     Qc = np.identity(2)
@@ -54,20 +41,13 @@ if __name__ == '__main__':
     pose_fix = gtsam.noiseModel_Isotropic.Sigma(2, 0.0001)
     vel_fix = gtsam.noiseModel_Isotropic.Sigma(2, 0.0001)
 
+    start_conf = np.array([0, 0])
+    start_vel = np.array([0, 0])
 
-    start_conf = np.array([0, 0]).T
-    start_vel = np.array([0, 0]).T
-
-    end_conf = np.array([math.pi / 2, 0]).T
-    end_vel = np.array([0, 0]).T
+    end_conf = np.array([math.pi / 2, 0])
+    end_vel = np.array([0, 0])
 
     avg_vel = (end_conf / total_time_step) / delta_t
-
-    if args.plot:
-        # Plot start / end config
-        dataset.getEvidenceMapPlot()
-        util.getPlanarArmPlot(arm.fk_model(), start_conf, 'blue', 2)
-        util.getPlanarArmPlot(arm.fk_model(), end_conf, 'red', 2)
 
     # Init optimization
     graph = gtsam.NonlinearFactorGraph()
@@ -77,10 +57,11 @@ if __name__ == '__main__':
 
         # Chars in C++ can only be represented as
         # integers in Python, hence ord()
-        key_pos = gtsam.symbol(ord('x'), i)
-        key_vel = gtsam.symbol(ord('v'), i)
+        # The utils function wraps this behavior
+        key_pos = util.symbol('x', i)
+        key_vel = util.symbol('v', i)
 
-        # Initialize as straight lin in configuration space
+        # Initialize as straight line in configuration space
         pose = \
             start_conf * (total_time_step - i) / total_time_step \
             + end_conf * i / total_time_step
@@ -99,18 +80,16 @@ if __name__ == '__main__':
             graph.add(gtsam.PriorFactorVector(key_pos, end_conf, pose_fix))
             graph.add(gtsam.PriorFactorVector(key_vel, end_vel, vel_fix))
 
-        key_pos1 = gtsam.symbol(ord('x'), i - 1)
-        key_pos2 = gtsam.symbol(ord('x'), i)
-        key_vel1 = gtsam.symbol(ord('v'), i - 1)
-        key_vel2 = gtsam.symbol(ord('v'), i)
+        previous_key_pos = util.symbol('x', i - 1)
+        previous_key_vel = util.symbol('v', i - 1)
 
         # A prior on the previous positions and velocities
         graph.add(
             gpmp2.GaussianProcessPriorLinear(
-                key_pos1,
-                key_vel1,
-                key_pos2,
-                key_vel2,
+                previous_key_pos,
+                previous_key_vel,
+                key_pos,
+                key_vel,
                 delta_t,
                 Qc_model,
             )
@@ -133,10 +112,10 @@ if __name__ == '__main__':
                 tau = (j + 1) * (total_time_sec / total_check_step)
                 graph.add(
                     gpmp2.ObstaclePlanarSDFFactorGPArm(
-                        key_pos1,
-                        key_vel1,
-                        key_pos2,
-                        key_vel2,
+                        previous_key_pos,
+                        previous_key_vel,
+                        key_pos,
+                        key_vel,
                         arm,
                         sdf,
                         cost_sigma,
@@ -162,8 +141,17 @@ if __name__ == '__main__':
     optimizer.optimize()
     result = optimizer.values()
 
-    if args.plot:
-        fig, ax = dataset.getEvidenceMapPlot()
+    if plot:
+        # TODO update this to be more detailed
+        dataset.get_sdf_plot(field)
+
+        # Plot start / end config
+        dataset.get_evidence_map_plot()
+        util.get_planar_arm_plot(arm.fk_model(), start_conf, 'blue', 2)
+        util.get_planar_arm_plot(arm.fk_model(), end_conf, 'red', 2)
+
+        # The animation function is more custom, so I just put it here
+        fig, ax = dataset.get_evidence_map_plot()
 
         confs = [
             result.atVector(gtsam.symbol(ord('x'), i))
@@ -199,3 +187,13 @@ if __name__ == '__main__':
         plt.draw()
 
         plt.show()
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(
+        description='Optimize a simple 2D dataset'
+    )
+    parser.add_argument('--plot', action='store_true')
+    args = parser.parse_args()
+    plan(args.plot)
