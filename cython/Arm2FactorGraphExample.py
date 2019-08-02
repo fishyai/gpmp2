@@ -5,14 +5,13 @@ import numpy as np
 import util
 import math
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 import argparse
 
 
 def plan(plot=False):
     # Small dataset
-    dataset = util.Dataset2D.get('OneObstacleDataset')
+    dataset = util.Dataset2D.get(util.Dataset2DType.OneObstacleDataset)
     origin_point2 = gtsam.Point2(dataset.origin_x, dataset.origin_y)
 
     # Signed distance field
@@ -27,7 +26,7 @@ def plan(plot=False):
     check_inter = total_check_step / total_time_step - 1
 
     use_gp_inter = True
-    arm = util.generate_arm('SimpleTwoLinksArm')
+    arm = util.generate_arm(util.ArmType.SimpleTwoLinksArm)
 
     # GP
     Qc = np.identity(2)
@@ -158,34 +157,13 @@ def plan(plot=False):
             for i in range(total_time_step)
         ]
 
-        fk = arm.fk_model()
-        positions = []
-        for c in confs:
-            p = fk.forwardKinematicsPosition(c)[0:2, :]
-            position = np.zeros((p.shape[0], p.shape[1] + 1))
-            position[:, 1:] = p
-            positions.append(position)
-
-        line, = ax.plot(
-            positions[0][0, :],
-            positions[0][1, :],
-            color='blue',
-            linewidth=2
-        )
-
-        def animate(i):
-            line.set_xdata(positions[i][0, :])
-            line.set_ydata(positions[i][1, :])
-
-        anim = animation.FuncAnimation(
+        anim = util.get_animated_planar_arm_plot(  # NOQA
             fig,
-            animate,
-            interval=100,
-            frames=total_time_step,
+            ax,
+            arm.fk_model(),
+            confs
         )
-
         plt.draw()
-
         plt.show()
 
 

@@ -10,6 +10,7 @@ RUN apt install -y --no-install-recommends \
   apt-utils \
   python-pip \
   wget \
+  imagemagick \
   build-essential
 
 RUN update-ca-certificates

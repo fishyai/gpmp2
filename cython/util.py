@@ -6,6 +6,21 @@ import gtsam
 from gpmp2 import gpmp2
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from collections import namedtuple
+from enum import Enum
+
+
+class Dataset2DType(Enum):
+    EmptyDataset = 'EmptyDataset'
+    OneObstacleDataset = 'OneObstacleDataset'
+    TwoObstaclesDataset = 'TwoObstaclesDataset'
+    MultiObstacleDataset = 'MultiObstacleDataset'
+    MobileMap1 = 'MobileMap1'
+
+
+class ArmType(Enum):
+    SimpleTwoLinksArm = 'SimpleTwoLinksArm'
+    SimpleThreeLinksArm = 'SimpleThreeLinksArm'
 
 
 class Dataset2D(object):
@@ -15,28 +30,30 @@ class Dataset2D(object):
         cols,
         origin,
         cell_size,
+        type=None,
     ):
         self.cols = cols
         self.rows = rows
         self.origin_x, self.origin_y = origin
         self.cell_size = cell_size
         self.map = np.zeros((self.rows, self.cols), dtype=np.float64)
+        self.type = type
 
     @classmethod
     def get(cls, name=None):
-        if name is None:
-            dataset = cls(300, 300, (-1, -1), 0.01)
-        elif name == 'OneObstacleDataset':
-            dataset = cls(300, 300, (-1, -1), 0.01)
+        if name is None or name == Dataset2DType.EmptyDataset:
+            dataset = cls(300, 300, (-1, -1), 0.01, Dataset2DType.EmptyDataset)
+        elif name == Dataset2DType.OneObstacleDataset:
+            dataset = cls(300, 300, (-1, -1), 0.01, name)
             dataset._add_obstacle((190, 160), (60, 80))
 
-        elif name == 'TwoObstaclesDataset':
-            dataset = cls(300, 300, (-1, -1), 0.01)
+        elif name == Dataset2DType.TwoObstaclesDataset:
+            dataset = cls(300, 300, (-1, -1), 0.01, name)
             dataset._add_obstacle((200, 200), (80, 100))
             dataset._add_obstacle((160, 80), (30, 80))
 
-        elif name == 'MultiObstacleDataset':
-            dataset = cls(300, 400, (-20, -10), 0.1)
+        elif name == Dataset2DType.MultiObstacleDataset:
+            dataset = cls(300, 400, (-20, -10), 0.1, name)
             dataset._add_obstacle(
                 dataset._get_center(12, 10),
                 dataset._get_dim(5, 7),
@@ -49,8 +66,8 @@ class Dataset2D(object):
                 dataset._get_center(0, -5),
                 dataset._get_dim(10, 5),
             )
-        elif name == 'MobileMap1':
-            dataset = cls(500, 500, (-5, -5), 0.1)
+        elif name == Dataset2DType.MobileMap1:
+            dataset = cls(500, 500, (-5, -5), 0.1, name)
             dataset._add_obstacle(
                 dataset._get_center(0, 0),
                 dataset._get_dim(1, 5),
@@ -124,16 +141,20 @@ class Dataset2D(object):
         ax = figure.add_subplot(111)
         grid_corner_x = self.origin_x + (self.cols - 1) * self.cell_size
         grid_corner_y = self.origin_y + (self.rows - 1) * self.cell_size
-        plt.imshow(
-            (1 - self.map) * 2 + 1,
-            origin='lower',
-            extent=[
-                self.origin_x,
-                grid_corner_x,
-                self.origin_y,
-                grid_corner_y
-            ],
-        )
+        if self.type == Dataset2DType.EmptyDataset:
+            ax.set_xlim(self.origin_x, grid_corner_x)
+            ax.set_ylim(self.origin_y, grid_corner_y)
+        else:
+            plt.imshow(
+                (1 - self.map) * 2 + 1,
+                origin='lower',
+                extent=[
+                    self.origin_x,
+                    grid_corner_x,
+                    self.origin_y,
+                    grid_corner_y
+                ],
+            )
         return figure, ax
 
     def _get_center(self, x, y):
@@ -166,11 +187,11 @@ def generate_arm(arm_type, base_pose=None):
             gtsam.Point3(0, 0, 0),
         )
 
-    if arm_type == 'SimpleTwoLinksArm':
+    if arm_type == ArmType.SimpleTwoLinksArm:
         a = np.array([0.5, 0.5])
         d = np.array([0, 0])
         alpha = np.array([0, 0])
-        arm = gpmp2.Arm(2, a, alpha, d)
+        arm = gpmp2.Arm(2, a, alpha, d, base_pose)
 
         spheres_data = np.array([
             [0, -0.5, 0.0, 0.0, 0.01],
@@ -195,6 +216,37 @@ def generate_arm(arm_type, base_pose=None):
             )
             sphere_vec.push_back(sphere)
 
+    elif arm_type == ArmType.SimpleThreeLinksArm:
+        a = np.array([0.5, 0.5, 0.5])
+        d = np.array([0, 0, 0])
+        alpha = np.array([0, 0, 0])
+        arm = gpmp2.Arm(3, a, alpha, d, base_pose)
+        spheres_data = np.array([
+            [0, -0.5, 0.0, 0.0, 0.01],
+            [0, -0.4, 0.0, 0.0, 0.01],
+            [0, -0.3, 0.0, 0.0, 0.01],
+            [0, -0.2, 0.0, 0.0, 0.01],
+            [0, -0.1, 0.0, 0.0, 0.01],
+            [1, -0.5, 0.0, 0.0, 0.01],
+            [1, -0.4, 0.0, 0.0, 0.01],
+            [1, -0.3, 0.0, 0.0, 0.01],
+            [1, -0.2, 0.0, 0.0, 0.01],
+            [1, -0.1, 0.0, 0.0, 0.01],
+            [2, -0.5, 0.0, 0.0, 0.01],
+            [2, -0.4, 0.0, 0.0, 0.01],
+            [2, -0.3, 0.0, 0.0, 0.01],
+            [2, -0.2, 0.0, 0.0, 0.01],
+            [2, -0.1, 0.0, 0.0, 0.01],
+            [2, 0.0, 0.0, 0.0, 0.01],
+        ])
+        sphere_vec = gpmp2.BodySphereVector()
+        for row in range(len(spheres_data)):
+            sphere = gpmp2.BodySphere(
+                spheres_data[row, 0],
+                spheres_data[row, 4],
+                gtsam.Point3(spheres_data[row, 1:3]),
+            )
+            sphere_vec.push_back(sphere)
     else:
         raise Exception('No such arm exists')
 
@@ -209,8 +261,16 @@ def get_planar_arm_plot(fk_model, conf, color, width):
 
     # TODO make this plot work with different base poses
     position = np.zeros((_position.shape[0], _position.shape[1] + 1))
+    base_pose = fk_model.base_pose().translation()
+    # Ignoring Z because this is a planar arm plot
+    position[:, 0] = np.array([base_pose.x(), base_pose.y()])
     position[:, 1:] = _position
-    plt.plot(position[0, :], position[1, :], color=color, linewidth=width)
+    line, = plt.plot(
+        position[0, :],
+        position[1, :],
+        color=color,
+        linewidth=width,
+    )
     plt.plot(
         position[0, :-1],
         position[1, :-1],
@@ -218,7 +278,96 @@ def get_planar_arm_plot(fk_model, conf, color, width):
         marker='.',
         markersize=10,
         linewidth=0)
-    return position
+    return line
+
+
+def get_animated_planar_arm_plot(
+    fig,
+    ax,
+    fk_model,
+    confs,
+    color='blue',
+    width=2,
+):
+    positions = []
+    for c in confs:
+        p = fk_model.forwardKinematicsPosition(c)[0:2, :]
+        position = np.zeros((p.shape[0], p.shape[1] + 1))
+        base_pose = fk_model.base_pose().translation()
+        # Ignoring Z because this is a planar arm plot
+        position[:, 0] = np.array([base_pose.x(), base_pose.y()])
+        position[:, 1:] = p
+        positions.append(position)
+
+    line, = ax.plot(
+        positions[0][0, :],
+        positions[0][1, :],
+        color='blue',
+        linewidth=2
+    )
+
+    def animate(i):
+        line.set_xdata(positions[i][0, :])
+        line.set_ydata(positions[i][1, :])
+
+    anim = animation.FuncAnimation(
+        fig,
+        animate,
+        interval=100,
+        frames=len(confs),
+    )
+    return anim
+
+
+AnimatedArmInfo = namedtuple(
+    'AnimatedArmInfo',
+    ['fk', 'confs', 'color', 'width'],
+)
+
+
+def get_animated_planar_multiarm_plot(
+    fig,
+    ax,
+    arm_info,  # Tuples of fk_models, conf values, colors, and widths
+):
+    num_confs = len(arm_info[0].confs)
+    pos = []
+    lines = []
+    for arm in arm_info:
+        fk, confs, color, width = arm
+        assert len(confs) == num_confs
+        positions = []
+        for c in confs:
+            p = fk.forwardKinematicsPosition(c)[0:2, :]
+            position = np.zeros((p.shape[0], p.shape[1] + 1))
+            base_pose = fk.base_pose().translation()
+            # Ignoring Z because this is a planar arm plot
+            position[:, 0] = np.array([base_pose.x(), base_pose.y()])
+            position[:, 1:] = p
+            positions.append(position)
+        pos.append(positions)
+        line, = ax.plot(
+            positions[0][0, :],
+            positions[0][1, :],
+            color=color,
+            linewidth=width,
+        )
+        lines.append(line)
+
+    def animate(time_step):
+        for idx in range(len(lines)):
+            line = lines[idx]
+            position = pos[idx]
+            line.set_xdata(pos[idx][time_step][0, :])
+            line.set_ydata(pos[idx][time_step][1, :])
+
+    anim = animation.FuncAnimation(
+        fig,
+        animate,
+        interval=200,
+        frames=num_confs,
+    )
+    return anim, lines
 
 
 def symbol(name, value):

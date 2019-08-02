@@ -5,19 +5,18 @@ import numpy as np
 import util
 import math
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 import argparse
 
 
 def plan(plot=False, plot_interpolation=False):
-    dataset = util.Dataset2D.get('OneObstacleDataset')
+    dataset = util.Dataset2D.get(util.Dataset2DType.OneObstacleDataset)
     origin_point2 = gtsam.Point2(dataset.origin_x, dataset.origin_y)
 
     # Signed distance field
     field = dataset.SDF()
     sdf = gpmp2.PlanarSDF(origin_point2, dataset.cell_size, field)
-    arm = util.generate_arm('SimpleTwoLinksArm')
+    arm = util.generate_arm(util.ArmType.SimpleTwoLinksArm)
 
     start_conf = np.array([0, 0])
     start_vel = np.array([0, 0])
@@ -105,7 +104,7 @@ def plan(plot=False, plot_interpolation=False):
     print(replanned_trajectory_values)
 
     if not plot and not plot_interpolation:
-        print('Done!')
+        print('Not plotting, so done!')
         return
 
     if plot and plot_interpolation:
@@ -141,9 +140,28 @@ def plan(plot=False, plot_interpolation=False):
 
     # Plot start / end config
     dataset.get_evidence_map_plot()
-    util.get_planar_arm_plot(arm.fk_model(), start_conf, 'blue', 2)
-    util.get_planar_arm_plot(arm.fk_model(), end_conf, 'red', 2)
-    util.get_planar_arm_plot(arm.fk_model(), replan_end_conf, 'coral', 2)
+    start_line = util.get_planar_arm_plot(
+        arm.fk_model(),
+        start_conf,
+        'green',
+        2,
+    )
+    orig_goal = util.get_planar_arm_plot(
+        arm.fk_model(),
+        end_conf,
+        'blue',
+        2,
+    )
+    new_goal = util.get_planar_arm_plot(
+        arm.fk_model(),
+        replan_end_conf,
+        'lightblue',
+        2,
+    )
+    plt.legend(
+        (start_line, orig_goal, new_goal),
+        ('Start', 'Original', 'Replanned'),
+    )
 
     # The animation function is more custom, so I just put it here
     fig, ax = dataset.get_evidence_map_plot()
@@ -152,56 +170,18 @@ def plan(plot=False, plot_interpolation=False):
         for i in range(total_plot_step)
     ]
 
-    fk = arm.fk_model()
-    original_positions = []
-    for c in original_confs:
-        p = fk.forwardKinematicsPosition(c)[0:2, :]
-        position = np.zeros((p.shape[0], p.shape[1] + 1))
-        position[:, 1:] = p
-        original_positions.append(position)
-
     replanned_confs = [
         replanned_plot_values.atVector(gtsam.symbol(ord('x'), i))
         for i in range(total_plot_step)
     ]
-
     fk = arm.fk_model()
-    replanned_positions = []
-    for c in replanned_confs:
-        p = fk.forwardKinematicsPosition(c)[0:2, :]
-        position = np.zeros((p.shape[0], p.shape[1] + 1))
-        position[:, 1:] = p
-        replanned_positions.append(position)
+    arm_info = [
+        util.AnimatedArmInfo(fk, original_confs, 'blue', 2),
+        util.AnimatedArmInfo(fk, replanned_confs, 'skyblue', 2),
+    ]
 
-    original_line, = ax.plot(
-        original_positions[0][0, :],
-        original_positions[0][1, :],
-        color='blue',
-        linewidth=2
-    )
-
-    replanned_line, = ax.plot(
-        replanned_positions[0][0, :],
-        replanned_positions[0][1, :],
-        color='skyblue',
-        linewidth=2
-    )
-
-    def animate(i):
-        original_line.set_xdata(original_positions[i][0, :])
-        original_line.set_ydata(original_positions[i][1, :])
-        replanned_line.set_xdata(replanned_positions[i][0, :])
-        replanned_line.set_ydata(replanned_positions[i][1, :])
-
-    # # For some reason, this needs to be assigned or else the
-    # animation does not work
-    anim = animation.FuncAnimation(
-        fig,
-        animate,
-        interval=100,
-        frames=total_plot_step,
-    )
-    plt.legend((original_line, replanned_line), ('Original', 'Replanned'))
+    anim, lines = util.get_animated_planar_multiarm_plot(fig, ax, arm_info)
+    plt.legend(lines, ('Original', 'Replanned'))
 
     plt.draw()
     plt.show()
